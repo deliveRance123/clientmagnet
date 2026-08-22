@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import {
-  Magnet,
   Lock,
   Mail,
   User,
@@ -15,6 +14,7 @@ import {
   ArrowRight,
   AlertCircle,
   CheckCircle2,
+  ArrowLeft,
 } from "lucide-react";
 
 export default function RegisterPage() {
@@ -66,14 +66,14 @@ export default function RegisterPage() {
     }
 
     if (strengthScore < 4) {
-      setError("Please ensure your password meets all complexity requirements.");
+      setError("Please ensure your password meets all complexity requirements (at least 8 chars, 1 uppercase, 1 lowercase, 1 number).");
       return;
     }
 
     setIsSubmitting(true);
 
     const res = await register({
-      email,
+      email: email.trim(),
       password,
       full_name: fullName.trim() || undefined,
       company_name: companyName.trim() || undefined,
@@ -94,12 +94,26 @@ export default function RegisterPage() {
       <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-sky-500/15 blur-3xl pointer-events-none" />
       <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none" />
 
-      <div className="relative w-full max-w-lg space-y-8">
+      <div className="relative w-full max-w-lg space-y-6">
+        {/* Back to Landing Page */}
+        <div>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-sky-400 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to Landing Page
+          </Link>
+        </div>
+
         {/* Brand Header */}
         <div className="text-center">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 shadow-lg shadow-sky-500/25">
-            <Magnet className="h-7 w-7 text-white" />
-          </div>
+          <Link href="/" className="inline-block group">
+            <img
+              src="/favicon.svg"
+              alt="Client Magnet"
+              className="h-14 w-14 mx-auto drop-shadow-[0_0_15px_rgba(56,189,248,0.5)] group-hover:scale-105 transition-transform"
+            />
+          </Link>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-white">
             Create Your Account
           </h2>
@@ -243,7 +257,6 @@ export default function RegisterPage() {
                     {strengthLabel}
                   </span>
                 </div>
-                {/* Progress bar */}
                 <div className="grid grid-cols-4 gap-1.5">
                   {[1, 2, 3, 4].map((step) => (
                     <div
@@ -260,7 +273,6 @@ export default function RegisterPage() {
                     />
                   ))}
                 </div>
-                {/* Check list */}
                 <div className="grid grid-cols-2 gap-1 pt-1 text-[11px] text-slate-400">
                   <div className={`flex items-center gap-1 ${passwordChecks.length ? "text-emerald-400" : ""}`}>
                     <CheckCircle2 className="h-3 w-3" /> At least 8 characters

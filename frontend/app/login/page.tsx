@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { Magnet, Lock, Mail, Eye, EyeOff, ArrowRight, AlertCircle, ShieldCheck } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff, ArrowRight, AlertCircle, ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -21,20 +21,14 @@ export default function LoginPage() {
     setError(null);
     setIsSubmitting(true);
 
-    const res = await login(email, password);
+    const res = await login(email.trim(), password);
     setIsSubmitting(false);
 
     if (res.success) {
       router.push("/");
     } else {
-      setError(res.error || "Invalid email or password.");
+      setError(res.error || "Invalid email or password. Please verify your credentials.");
     }
-  };
-
-  const handleDemoFill = () => {
-    setEmail("demo@clientmagnet.io");
-    setPassword("DemoSecure123!");
-    setError(null);
   };
 
   return (
@@ -43,12 +37,26 @@ export default function LoginPage() {
       <div className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-sky-500/15 blur-3xl pointer-events-none" />
       <div className="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none" />
 
-      <div className="relative w-full max-w-md space-y-8">
+      <div className="relative w-full max-w-md space-y-6">
+        {/* Back to Landing Page navigation */}
+        <div>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-sky-400 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to Landing Page
+          </Link>
+        </div>
+
         {/* Brand Header */}
         <div className="text-center">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 shadow-lg shadow-sky-500/25">
-            <Magnet className="h-7 w-7 text-white" />
-          </div>
+          <Link href="/" className="inline-block group">
+            <img
+              src="/favicon.svg"
+              alt="Client Magnet"
+              className="h-14 w-14 mx-auto drop-shadow-[0_0_15px_rgba(56,189,248,0.5)] group-hover:scale-105 transition-transform"
+            />
+          </Link>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-white">
             Client Magnet
           </h2>
@@ -60,7 +68,7 @@ export default function LoginPage() {
         {/* Auth Card */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl backdrop-blur-xl">
           {error && (
-            <div className="mb-6 flex items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-sm text-red-400 animate-shake">
+            <div className="mb-6 flex items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-sm text-red-400">
               <AlertCircle className="h-5 w-5 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -132,18 +140,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Helper */}
-          <div className="mt-6 border-t border-slate-800/80 pt-4 text-center">
-            <button
-              type="button"
-              onClick={handleDemoFill}
-              className="inline-flex items-center gap-1.5 text-xs text-sky-400 hover:text-sky-300 font-medium"
-            >
-              <ShieldCheck className="h-3.5 w-3.5" />
-              Quick fill demo credentials
-            </button>
-          </div>
         </div>
 
         {/* Footer Link */}

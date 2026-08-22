@@ -952,16 +952,19 @@ Required JSON Schema:
 # Factory Helper
 # ---------------------------------------------------------------------------
 
-def get_ai_service(api_key: str, use_mock: bool = False) -> AIService:
+def get_ai_service(api_key: Optional[str] = None, use_mock: Optional[bool] = None) -> AIService:
     """Instantiates the appropriate AI provider (Gemini or Mock) within AIService."""
-    if use_mock or not api_key:
+    effective_api_key = api_key if api_key is not None else settings.GEMINI_API_KEY
+    effective_use_mock = use_mock if use_mock is not None else settings.USE_MOCK_AI
+
+    if effective_use_mock or not effective_api_key:
         logger.info("Configuring AIService with MockProvider.")
         return AIService(MockProvider())
     else:
         logger.info(f"Configuring AIService with GeminiProvider ({settings.GEMINI_MODEL_NAME}).")
         return AIService(
             GeminiProvider(
-                api_key=api_key,
+                api_key=effective_api_key,
                 model_name=settings.GEMINI_MODEL_NAME,
                 max_tokens=settings.AI_MAX_OUTPUT_TOKENS,
                 temperature=settings.AI_TEMPERATURE,

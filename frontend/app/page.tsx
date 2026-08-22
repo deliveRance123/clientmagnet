@@ -30,20 +30,19 @@ import {
   Layout,
   Lock,
   Database,
-  Search,
   Check,
-  Star,
   Flame,
   BarChart3,
-  Send,
-  Smartphone,
   ChevronRight,
+  Code2,
+  Cpu,
+  Workflow,
 } from "lucide-react";
 
 export default function HomePage() {
   const { user, token } = useAuth();
 
-  // If user is authenticated, render the SaaS Dashboard
+  // If user is authenticated, render the SaaS Command Dashboard
   if (user) {
     return <AuthenticatedDashboard token={token} user={user} />;
   }
@@ -60,13 +59,13 @@ function PublicLandingPage() {
   const [selectedDemoService, setSelectedDemoService] = useState<
     "web" | "graphics" | "bot"
   >("web");
-  const [simulatedScore, setSimulatedScore] = useState(94);
+  const [simulatedScore, setSimulatedScore] = useState(95);
   const [isSimulating, setIsSimulating] = useState(false);
 
   const demoScenarios = {
     web: {
-      title: "Fintech Startup - Full SaaS Platform Redesign",
-      source: "LINKEDIN POST",
+      title: "Fintech Enterprise - Full Web Platform & SaaS Dashboard",
+      source: "LINKEDIN VERIFIED",
       detectedNeed: "Next.js 14, Tailwind CSS, Stripe integration, & PostgreSQL portal",
       matchedService: "Website Design & Development",
       budget: "$5,000 - $8,000",
@@ -84,7 +83,7 @@ function PublicLandingPage() {
     },
     bot: {
       title: "Logistics Enterprise - Automated Customer Support & Lead Routing Bot",
-      source: "INBOUND WHATSAPP / API",
+      source: "META WHATSAPP / API",
       detectedNeed: "FastAPI, Meta WhatsApp Cloud API integration, CRM webhooks",
       matchedService: "Bot & Automation Development",
       budget: "$4,500 - $6,000",
@@ -101,54 +100,51 @@ function PublicLandingPage() {
     setTimeout(() => {
       setSimulatedScore(demoScenarios[svcKey].score);
       setIsSimulating(false);
-    }, 300);
+    }, 250);
   };
 
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden font-sans">
-      {/* Dynamic Background Ambient Gradients */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] bg-gradient-to-b from-sky-500/15 via-indigo-500/10 to-transparent blur-3xl pointer-events-none -z-10" />
-      <div className="absolute top-1/3 -left-48 w-96 h-96 rounded-full bg-sky-600/10 blur-[120px] pointer-events-none -z-10" />
-      <div className="absolute top-2/3 -right-48 w-96 h-96 rounded-full bg-indigo-600/10 blur-[120px] pointer-events-none -z-10" />
+    <div className="relative min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden font-sans selection:bg-sky-500 selection:text-white">
+      {/* Dynamic Background Ambient Gradients with Float & Glow Animations */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] bg-gradient-to-b from-sky-500/20 via-indigo-500/10 to-transparent blur-3xl pointer-events-none -z-10 animate-pulse-glow" />
+      <div className="absolute top-1/4 -left-48 w-96 h-96 rounded-full bg-sky-600/15 blur-[130px] pointer-events-none -z-10 animate-float" />
+      <div className="absolute top-2/3 -right-48 w-96 h-96 rounded-full bg-indigo-600/15 blur-[130px] pointer-events-none -z-10 animate-float" style={{ animationDelay: "2s" }} />
 
       {/* -------------------------------------------------------------------- */}
-      {/* Navigation Header                                                    */}
+      {/* Strictly Sticky Navigation Header                                    */}
       {/* -------------------------------------------------------------------- */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800/80">
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/90 border-b border-slate-800/80 shadow-lg shadow-black/40 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative h-10 w-10">
               <img
                 src="/favicon.svg"
                 alt="Client Magnet"
-                className="h-10 w-10 drop-shadow-[0_0_12px_rgba(56,189,248,0.5)] transition-transform group-hover:scale-105"
+                className="h-10 w-10 drop-shadow-[0_0_15px_rgba(56,189,248,0.6)] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
               />
             </div>
             <div>
-              <span className="text-lg font-black tracking-tight text-white flex items-center gap-1.5">
+              <span className="text-xl font-black tracking-tight text-white flex items-center gap-1.5">
                 Client Magnet
-                <span className="inline-flex items-center rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] font-bold text-sky-300 border border-sky-500/30">
-                  v2.0
-                </span>
               </span>
-              <p className="text-[10px] text-slate-400 font-medium">Global Client Discovery & CRM</p>
+              <p className="text-[10px] text-sky-400 font-medium">Global Client Discovery & CRM</p>
             </div>
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-300">
-            <a href="#features" className="hover:text-sky-400 transition-colors">
+            <a href="#features" className="hover:text-sky-400 transition-colors duration-200">
               Features
             </a>
-            <a href="#simulator" className="hover:text-sky-400 transition-colors">
+            <a href="#simulator" className="hover:text-sky-400 transition-colors duration-200">
               Live Demo
             </a>
-            <a href="#pipeline" className="hover:text-sky-400 transition-colors">
+            <a href="#pipeline" className="hover:text-sky-400 transition-colors duration-200">
               CRM Pipeline
             </a>
-            <a href="#services" className="hover:text-sky-400 transition-colors">
+            <a href="#services" className="hover:text-sky-400 transition-colors duration-200">
               Supported Services
             </a>
-            <a href="#pricing" className="hover:text-sky-400 transition-colors">
+            <a href="#pricing" className="hover:text-sky-400 transition-colors duration-200">
               Pricing
             </a>
           </nav>
@@ -162,9 +158,9 @@ function PublicLandingPage() {
             </Link>
             <Link
               href="/register"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-500/25 hover:from-sky-400 hover:to-blue-500 active:scale-95 transition"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-500/25 hover:from-sky-400 hover:to-blue-500 hover:shadow-sky-500/40 active:scale-95 transition-all duration-200"
             >
-              Get Started Free <ArrowRight className="h-4 w-4" />
+              Get Started Free <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
         </div>
@@ -174,14 +170,14 @@ function PublicLandingPage() {
       {/* Hero Section                                                         */}
       {/* -------------------------------------------------------------------- */}
       <section className="relative pt-16 pb-20 md:pt-24 md:pb-32 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/90 border border-sky-500/30 px-4 py-1.5 text-xs font-bold text-sky-400 shadow-inner mb-6 backdrop-blur-md">
+        <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/90 border border-sky-500/30 px-4 py-1.5 text-xs font-bold text-sky-400 shadow-inner mb-6 backdrop-blur-md hover:border-sky-400 transition-colors">
           <Zap className="h-3.5 w-3.5 text-sky-400 animate-pulse" />
           <span>The Intelligent Client Discovery & CRM Operating System</span>
         </div>
 
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white max-w-4xl mx-auto leading-tight">
           Turn Global Freelance Opportunities into{" "}
-          <span className="bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent animate-gradient">
             High-Paying Clients
           </span>{" "}
           Automatically.
@@ -194,34 +190,35 @@ function PublicLandingPage() {
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <Link
             href="/register"
-            className="inline-flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-sky-500/20 hover:opacity-95 active:scale-95 transition"
+            className="group inline-flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-sky-500/25 hover:shadow-sky-500/40 hover:scale-[1.02] active:scale-95 transition-all duration-200"
           >
-            <Sparkles className="h-5 w-5" />
+            <Sparkles className="h-5 w-5 text-sky-200 animate-spin" style={{ animationDuration: "8s" }} />
             Start Acquiring Clients Free
+            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </Link>
           <a
             href="#simulator"
-            className="inline-flex items-center gap-2 rounded-2xl bg-slate-900/90 border border-slate-800 px-7 py-4 text-base font-bold text-slate-300 hover:bg-slate-800 hover:text-white transition"
+            className="inline-flex items-center gap-2 rounded-2xl bg-slate-900/90 border border-slate-800 px-7 py-4 text-base font-bold text-slate-300 hover:bg-slate-800 hover:text-white hover:border-slate-700 transition duration-200"
           >
             Explore Interactive Demo <ChevronRight className="h-4 w-4" />
           </a>
         </div>
 
         {/* Security & Architecture Badges */}
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-xs font-semibold text-slate-400">
-          <span className="flex items-center gap-1.5">
+        <div className="mt-14 flex flex-wrap items-center justify-center gap-6 text-xs font-semibold text-slate-400">
+          <span className="flex items-center gap-1.5 rounded-full bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 backdrop-blur-sm hover:border-slate-700 transition">
             <ShieldCheck className="h-4 w-4 text-sky-400" />
             Argon2id + AES-256 Security
           </span>
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5 rounded-full bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 backdrop-blur-sm hover:border-slate-700 transition">
             <Database className="h-4 w-4 text-indigo-400" />
-            Pure PostgreSQL (Zero Secondary DB)
+            Pure PostgreSQL Architecture
           </span>
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5 rounded-full bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 backdrop-blur-sm hover:border-slate-700 transition">
             <Lock className="h-4 w-4 text-emerald-400" />
             100% Tenant Isolated
           </span>
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5 rounded-full bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 backdrop-blur-sm hover:border-slate-700 transition">
             <Globe className="h-4 w-4 text-blue-400" />
             Official Platform APIs & OAuth
           </span>
@@ -248,30 +245,30 @@ function PublicLandingPage() {
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <button
                 onClick={() => triggerSimulate("web")}
-                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition ${
+                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all duration-200 ${
                   selectedDemoService === "web"
-                    ? "bg-sky-500 text-white shadow-md shadow-sky-500/20"
-                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                    ? "bg-sky-500 text-white shadow-md shadow-sky-500/30 scale-105"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
                 }`}
               >
                 <Layout className="h-4 w-4" /> 1. Website Design
               </button>
               <button
                 onClick={() => triggerSimulate("graphics")}
-                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition ${
+                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all duration-200 ${
                   selectedDemoService === "graphics"
-                    ? "bg-sky-500 text-white shadow-md shadow-sky-500/20"
-                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                    ? "bg-sky-500 text-white shadow-md shadow-sky-500/30 scale-105"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
                 }`}
               >
                 <Palette className="h-4 w-4" /> 2. Graphics Design
               </button>
               <button
                 onClick={() => triggerSimulate("bot")}
-                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition ${
+                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all duration-200 ${
                   selectedDemoService === "bot"
-                    ? "bg-sky-500 text-white shadow-md shadow-sky-500/20"
-                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                    ? "bg-sky-500 text-white shadow-md shadow-sky-500/30 scale-105"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
                 }`}
               >
                 <Bot className="h-4 w-4" /> 3. Bot / Automation
@@ -279,15 +276,15 @@ function PublicLandingPage() {
             </div>
           </div>
 
-          {/* Simulated Lead Card Display */}
-          <div className="max-w-4xl mx-auto rounded-3xl border border-slate-700 bg-slate-900 p-6 md:p-8 shadow-2xl shadow-sky-500/5">
+          {/* Simulated Lead Card Display with Smooth State Animation */}
+          <div className="max-w-4xl mx-auto rounded-3xl border border-slate-700 bg-slate-900/90 p-6 md:p-8 shadow-2xl shadow-sky-500/10 backdrop-blur-md transition-all duration-300 hover:border-sky-500/40">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="rounded-md bg-sky-500/20 px-2.5 py-0.5 text-[11px] font-bold text-sky-300 border border-sky-500/30">
                     {currentDemo.source}
                   </span>
-                  <span className="rounded-md bg-emerald-500/20 px-2.5 py-0.5 text-[11px] font-bold text-emerald-300 border border-emerald-500/30">
+                  <span className="rounded-md bg-emerald-500/20 px-2.5 py-0.5 text-[11px] font-bold text-emerald-300 border border-emerald-500/30 animate-pulse">
                     URGENCY: {currentDemo.urgency}
                   </span>
                 </div>
@@ -295,14 +292,14 @@ function PublicLandingPage() {
               </div>
 
               {/* Score Meter */}
-              <div className="flex items-center gap-4 bg-slate-950/80 rounded-2xl p-4 border border-slate-800">
+              <div className="flex items-center gap-4 bg-slate-950/90 rounded-2xl p-4 border border-slate-800 shadow-inner">
                 <div className="text-right">
                   <div className="text-xs font-bold text-slate-400">Gemini Intent Score</div>
                   <div className="text-2xl font-black text-sky-400">
                     {isSimulating ? "..." : `${simulatedScore}%`}
                   </div>
                 </div>
-                <div className="h-12 w-12 rounded-full border-4 border-sky-500 flex items-center justify-center bg-sky-500/10">
+                <div className="h-12 w-12 rounded-full border-4 border-sky-500 flex items-center justify-center bg-sky-500/10 animate-pulse">
                   <Flame className="h-5 w-5 text-sky-400" />
                 </div>
               </div>
@@ -347,7 +344,7 @@ function PublicLandingPage() {
               </span>
               <Link
                 href="/register"
-                className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-5 py-2.5 text-xs font-bold text-white hover:bg-sky-400 active:scale-95 transition"
+                className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-5 py-2.5 text-xs font-bold text-white hover:bg-sky-400 active:scale-95 transition-all shadow-md shadow-sky-500/20"
               >
                 Claim This Pipeline Workflow <ArrowRight className="h-3.5 w-3.5" />
               </Link>
@@ -357,7 +354,7 @@ function PublicLandingPage() {
       </section>
 
       {/* -------------------------------------------------------------------- */}
-      {/* 5 Core Feature Pillars                                               */}
+      {/* 5 Core Feature Pillars with Interactive Hover Cards                  */}
       {/* -------------------------------------------------------------------- */}
       <section id="features" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
@@ -365,7 +362,7 @@ function PublicLandingPage() {
             Enterprise Architecture
           </h2>
           <p className="mt-2 text-3xl sm:text-4xl font-black text-white">
-            Built for Serious Freelancers & Agencies
+            Built for High-Growth Freelancers & Agencies
           </p>
           <p className="mt-3 text-sm text-slate-400">
             Everything you need to discover, qualify, outreach, and retain clients without external SaaS chaos.
@@ -374,98 +371,152 @@ function PublicLandingPage() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Feature 1 */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-sky-500/50 transition duration-200 flex flex-col justify-between">
+          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-sky-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-sky-500/10">
             <div>
-              <div className="h-12 w-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-6 group-hover:scale-110 group-hover:bg-sky-500/20 transition-all">
                 <Globe className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-bold text-white">Global Opportunity Discovery</h3>
+              <h3 className="text-lg font-bold text-white group-hover:text-sky-300 transition-colors">Global Opportunity Discovery</h3>
               <p className="mt-2 text-sm text-slate-400 leading-relaxed">
                 Connect multiple legitimate job boards, RSS feeds, and manual CSV imports with automatic deduplication and HTML stripping.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-slate-800 text-xs font-bold text-sky-400 flex items-center gap-1">
-              Normalized Schema <ArrowRight className="h-3 w-3" />
+              Normalized Schema <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
             </div>
           </div>
 
           {/* Feature 2 */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-indigo-500/50 transition duration-200 flex flex-col justify-between">
+          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-indigo-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-indigo-500/10">
             <div>
-              <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6 group-hover:scale-110 group-hover:bg-indigo-500/20 transition-all">
                 <BarChart3 className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-bold text-white">9-Stage Visual CRM Pipeline</h3>
+              <h3 className="text-lg font-bold text-white group-hover:text-indigo-300 transition-colors">9-Stage Visual CRM Pipeline</h3>
               <p className="mt-2 text-sm text-slate-400 leading-relaxed">
                 Track deals from NEW through WON/LOST. Non-destructively convert closed deals into permanent Client retainers.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-slate-800 text-xs font-bold text-indigo-400 flex items-center gap-1">
-              Lead $\to$ Client Conversion <ArrowRight className="h-3 w-3" />
+              Lead $\to$ Client Conversion <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
             </div>
           </div>
 
           {/* Feature 3 */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-emerald-500/50 transition duration-200 flex flex-col justify-between">
+          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-emerald-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-emerald-500/10">
             <div>
-              <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all">
                 <MessageSquare className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-bold text-white">Omnichannel Unified Inbox</h3>
+              <h3 className="text-lg font-bold text-white group-hover:text-emerald-300 transition-colors">Omnichannel Unified Inbox</h3>
               <p className="mt-2 text-sm text-slate-400 leading-relaxed">
                 Centralize messaging across Gmail, Meta WhatsApp Cloud API, and social accounts with Gemini AI reply suggestions.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-slate-800 text-xs font-bold text-emerald-400 flex items-center gap-1">
-              Zero Bulk Spam Policy <ArrowRight className="h-3 w-3" />
+              Zero Bulk Spam Policy <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
             </div>
           </div>
 
           {/* Feature 4 */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-purple-500/50 transition duration-200 flex flex-col justify-between">
+          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-purple-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-purple-500/10">
             <div>
-              <div className="h-12 w-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-6 group-hover:scale-110 group-hover:bg-purple-500/20 transition-all">
                 <Share2 className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-bold text-white">Social Studio & Scheduler</h3>
+              <h3 className="text-lg font-bold text-white group-hover:text-purple-300 transition-colors">Social Studio & Scheduler</h3>
               <p className="mt-2 text-sm text-slate-400 leading-relaxed">
                 Draft content, generate platform-specific captions and hashtags with AI, and schedule posts across X, LinkedIn, and Meta.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-slate-800 text-xs font-bold text-purple-400 flex items-center gap-1">
-              Official OAuth 2.0 <ArrowRight className="h-3 w-3" />
+              Official OAuth 2.0 <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
             </div>
           </div>
 
           {/* Feature 5 */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-amber-500/50 transition duration-200 flex flex-col justify-between">
+          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-amber-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-amber-500/10">
             <div>
-              <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-6 group-hover:scale-110 group-hover:bg-amber-500/20 transition-all">
                 <TrendingUp className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-bold text-white">PostgreSQL Business Analytics</h3>
+              <h3 className="text-lg font-bold text-white group-hover:text-amber-300 transition-colors">PostgreSQL Business Analytics</h3>
               <p className="mt-2 text-sm text-slate-400 leading-relaxed">
                 Real-time conversion funnels (Lead $\to$ Qualified $\to$ Replied $\to$ Won) and service ROI computed directly via pure SQL queries.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-slate-800 text-xs font-bold text-amber-400 flex items-center gap-1">
-              Zero External DB Dependency <ArrowRight className="h-3 w-3" />
+              Zero External DB Dependency <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
             </div>
           </div>
 
           {/* Feature 6 */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-rose-500/50 transition duration-200 flex flex-col justify-between">
+          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-rose-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-rose-500/10">
             <div>
-              <div className="h-12 w-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-6 group-hover:scale-110 group-hover:bg-rose-500/20 transition-all">
                 <ShieldCheck className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-bold text-white">Military-Grade Security</h3>
+              <h3 className="text-lg font-bold text-white group-hover:text-rose-300 transition-colors">Military-Grade Security</h3>
               <p className="mt-2 text-sm text-slate-400 leading-relaxed">
                 Argon2id password hashing, AES-256 Fernet credential encryption at rest, rate-limited auth, and tenant-isolated data queries.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-slate-800 text-xs font-bold text-rose-400 flex items-center gap-1">
-              Production Audited <ArrowRight className="h-3 w-3" />
+              Production Audited <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* -------------------------------------------------------------------- */}
+      {/* Supported Services Catalog Track Showcase                           */}
+      {/* -------------------------------------------------------------------- */}
+      <section id="services" className="py-20 bg-slate-900/40 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <h2 className="text-xs font-black uppercase tracking-widest text-sky-400">
+              Core Service Offerings
+            </h2>
+            <p className="mt-2 text-3xl font-black text-white">
+              Pre-Configured for the 3 Major In-Demand High-Ticket Niches
+            </p>
+            <p className="mt-2 text-sm text-slate-400">
+              Match incoming client inquiries to your custom deliverables, pricing, and portfolios.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 hover:border-sky-500/50 transition duration-300">
+              <div className="h-10 w-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center mb-4">
+                <Layout className="h-5 w-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white">1. Website Design & Dev</h3>
+              <p className="text-xs text-sky-400 font-semibold mt-1">Average Deal: $3,000 - $8,000</p>
+              <p className="mt-3 text-sm text-slate-400">
+                Next.js 14, React, Tailwind CSS platforms, custom SaaS dashboards, responsive landing pages, and Stripe integrations.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 hover:border-indigo-500/50 transition duration-300">
+              <div className="h-10 w-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4">
+                <Palette className="h-5 w-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white">2. Graphics & Brand Identity</h3>
+              <p className="text-xs text-indigo-400 font-semibold mt-1">Average Deal: $1,500 - $4,000</p>
+              <p className="mt-3 text-sm text-slate-400">
+                Complete brand guidelines, vector logos, Figma UI/UX design systems, 3D renders, social media templates, and banners.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 hover:border-emerald-500/50 transition duration-300">
+              <div className="h-10 w-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4">
+                <Bot className="h-5 w-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white">3. Bot & Automation Dev</h3>
+              <p className="text-xs text-emerald-400 font-semibold mt-1">Average Deal: $2,500 - $6,000</p>
+              <p className="mt-3 text-sm text-slate-400">
+                Meta WhatsApp Business API chatbots, workflow automations, CRM webhook integrations, and AI response handlers.
+              </p>
             </div>
           </div>
         </div>
@@ -474,175 +525,175 @@ function PublicLandingPage() {
       {/* -------------------------------------------------------------------- */}
       {/* Visual Pipeline Showcase                                             */}
       {/* -------------------------------------------------------------------- */}
-      <section id="pipeline" className="py-20 bg-slate-900/40 border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-14">
-            <h2 className="text-xs font-black uppercase tracking-widest text-sky-400">
-              Deal Flow Pipeline
-            </h2>
-            <p className="mt-2 text-3xl font-black text-white">
-              The 9-Stage High-Conversion Funnel
-            </p>
-            <p className="mt-2 text-sm text-slate-400">
-              Never lose track of a prospect. Move leads seamlessly from first discovery to closed client.
-            </p>
-          </div>
+      <section id="pipeline" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-14">
+          <h2 className="text-xs font-black uppercase tracking-widest text-sky-400">
+            Deal Flow Pipeline
+          </h2>
+          <p className="mt-2 text-3xl font-black text-white">
+            The 9-Stage High-Conversion Funnel
+          </p>
+          <p className="mt-2 text-sm text-slate-400">
+            Never lose track of a prospect. Move leads seamlessly from first discovery to closed client.
+          </p>
+        </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-3">
-            {[
-              { stage: "NEW", desc: "Just discovered", color: "border-sky-500/40 bg-sky-500/10 text-sky-300" },
-              { stage: "QUALIFIED", desc: "Budget & Fit", color: "border-blue-500/40 bg-blue-500/10 text-blue-300" },
-              { stage: "CONTACTED", desc: "Outreach sent", color: "border-indigo-500/40 bg-indigo-500/10 text-indigo-300" },
-              { stage: "REPLIED", desc: "In discussion", color: "border-purple-500/40 bg-purple-500/10 text-purple-300" },
-              { stage: "INTERESTED", desc: "Positive intent", color: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300" },
-              { stage: "DISCOVERY", desc: "Call / Scope", color: "border-cyan-500/40 bg-cyan-500/10 text-cyan-300" },
-              { stage: "PROPOSAL", desc: "Quote delivered", color: "border-amber-500/40 bg-amber-500/10 text-amber-300" },
-              { stage: "NEGOTIATION", desc: "Contract final", color: "border-orange-500/40 bg-orange-500/10 text-orange-300" },
-              { stage: "WON DEAL", desc: "Converted Client", color: "border-emerald-400 bg-emerald-500/20 text-emerald-300" },
-            ].map((st, i) => (
-              <div
-                key={st.stage}
-                className={`rounded-2xl border p-4 text-center ${st.color} flex flex-col justify-between`}
-              >
-                <div>
-                  <div className="text-[10px] font-black text-slate-400 mb-1">0{i + 1}</div>
-                  <div className="text-xs font-black tracking-tight">{st.stage}</div>
-                </div>
-                <div className="text-[10px] text-slate-400 mt-3 font-medium">{st.desc}</div>
+        <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-3">
+          {[
+            { stage: "NEW", desc: "Just discovered", color: "border-sky-500/40 bg-sky-500/10 text-sky-300" },
+            { stage: "QUALIFIED", desc: "Budget & Fit", color: "border-blue-500/40 bg-blue-500/10 text-blue-300" },
+            { stage: "CONTACTED", desc: "Outreach sent", color: "border-indigo-500/40 bg-indigo-500/10 text-indigo-300" },
+            { stage: "REPLIED", desc: "In discussion", color: "border-purple-500/40 bg-purple-500/10 text-purple-300" },
+            { stage: "INTERESTED", desc: "Positive intent", color: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300" },
+            { stage: "DISCOVERY", desc: "Call / Scope", color: "border-cyan-500/40 bg-cyan-500/10 text-cyan-300" },
+            { stage: "PROPOSAL", desc: "Quote delivered", color: "border-amber-500/40 bg-amber-500/10 text-amber-300" },
+            { stage: "NEGOTIATION", desc: "Contract final", color: "border-orange-500/40 bg-orange-500/10 text-orange-300" },
+            { stage: "WON DEAL", desc: "Converted Client", color: "border-emerald-400 bg-emerald-500/20 text-emerald-300" },
+          ].map((st, i) => (
+            <div
+              key={st.stage}
+              className={`rounded-2xl border p-4 text-center ${st.color} flex flex-col justify-between transition-transform duration-200 hover:scale-105`}
+            >
+              <div>
+                <div className="text-[10px] font-black text-slate-400 mb-1">0{i + 1}</div>
+                <div className="text-xs font-black tracking-tight">{st.stage}</div>
               </div>
-            ))}
-          </div>
+              <div className="text-[10px] text-slate-400 mt-3 font-medium">{st.desc}</div>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* -------------------------------------------------------------------- */}
       {/* Transparent Pricing Plans                                            */}
       {/* -------------------------------------------------------------------- */}
-      <section id="pricing" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <h2 className="text-xs font-black uppercase tracking-widest text-sky-400">
-            Simple Pricing
-          </h2>
-          <p className="mt-2 text-3xl font-black text-white">Start Free, Scale as You Win Deals</p>
-          <p className="mt-2 text-sm text-slate-400">
-            No credit card required. Upgrade anytime for higher discovery limits and automated scheduling.
-          </p>
-        </div>
-
-        <div className="grid gap-8 lg:grid-cols-3 max-w-5xl mx-auto">
-          {/* Starter Plan */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 flex flex-col justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-white">Free Starter</h3>
-              <p className="text-xs text-slate-400 mt-1">Perfect for solo freelancers getting started.</p>
-              <div className="mt-6 flex items-baseline gap-1">
-                <span className="text-4xl font-black text-white">$0</span>
-                <span className="text-xs text-slate-400 font-semibold">/forever</span>
-              </div>
-
-              <ul className="mt-8 space-y-3 text-xs text-slate-300">
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> Up to 50 active leads
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> 3 configured services catalog
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> 9-Stage Visual CRM Pipeline
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> Manual & CSV lead import
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> Basic PostgreSQL analytics
-                </li>
-              </ul>
-            </div>
-
-            <Link
-              href="/register"
-              className="mt-8 block w-full rounded-2xl bg-slate-800 py-3 text-center text-xs font-bold text-white hover:bg-slate-700 transition"
-            >
-              Get Started Free
-            </Link>
+      <section id="pricing" className="py-20 bg-slate-900/40 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <h2 className="text-xs font-black uppercase tracking-widest text-sky-400">
+              Simple Pricing
+            </h2>
+            <p className="mt-2 text-3xl font-black text-white">Start Free, Scale as You Win Deals</p>
+            <p className="mt-2 text-sm text-slate-400">
+              No credit card required. Upgrade anytime for higher discovery limits and automated scheduling.
+            </p>
           </div>
 
-          {/* Growth Plan (Popular) */}
-          <div className="relative rounded-3xl border-2 border-sky-500 bg-gradient-to-b from-slate-900 to-slate-950 p-8 flex flex-col justify-between shadow-2xl shadow-sky-500/10">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-sky-500 px-4 py-1 text-[10px] font-black uppercase text-white tracking-wider">
-              Most Popular
-            </div>
+          <div className="grid gap-8 lg:grid-cols-3 max-w-5xl mx-auto">
+            {/* Starter Plan */}
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 flex flex-col justify-between hover:border-slate-700 transition duration-200">
+              <div>
+                <h3 className="text-lg font-bold text-white">Free Starter</h3>
+                <p className="text-xs text-slate-400 mt-1">Perfect for solo freelancers getting started.</p>
+                <div className="mt-6 flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-white">$0</span>
+                  <span className="text-xs text-slate-400 font-semibold">/forever</span>
+                </div>
 
-            <div>
-              <h3 className="text-lg font-bold text-white">Growth Agency</h3>
-              <p className="text-xs text-slate-400 mt-1">For active freelancers & small agencies.</p>
-              <div className="mt-6 flex items-baseline gap-1">
-                <span className="text-4xl font-black text-white">$29</span>
-                <span className="text-xs text-slate-400 font-semibold">/month</span>
+                <ul className="mt-8 space-y-3 text-xs text-slate-300">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> Up to 50 active leads
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> 3 configured services catalog
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> 9-Stage Visual CRM Pipeline
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> Manual & CSV lead import
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> Basic PostgreSQL analytics
+                  </li>
+                </ul>
               </div>
 
-              <ul className="mt-8 space-y-3 text-xs text-slate-300">
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> Unlimited active leads & clients
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> Gemini AI intent scoring & analysis
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> Unified Inbox (Gmail + WhatsApp)
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> Social Studio & automated post scheduler
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> Full conversion funnel analytics
-                </li>
-              </ul>
+              <Link
+                href="/register"
+                className="mt-8 block w-full rounded-2xl bg-slate-800 py-3 text-center text-xs font-bold text-white hover:bg-slate-700 transition"
+              >
+                Get Started Free
+              </Link>
             </div>
 
-            <Link
-              href="/register"
-              className="mt-8 block w-full rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 py-3 text-center text-xs font-bold text-white shadow-lg shadow-sky-500/25 hover:opacity-95 transition"
-            >
-              Start 14-Day Free Trial
-            </Link>
-          </div>
-
-          {/* Enterprise Scale */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 flex flex-col justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-white">Enterprise Scale</h3>
-              <p className="text-xs text-slate-400 mt-1">High volume teams & customized workflows.</p>
-              <div className="mt-6 flex items-baseline gap-1">
-                <span className="text-4xl font-black text-white">$79</span>
-                <span className="text-xs text-slate-400 font-semibold">/month</span>
+            {/* Growth Plan (Popular) */}
+            <div className="relative rounded-3xl border-2 border-sky-500 bg-gradient-to-b from-slate-900 to-slate-950 p-8 flex flex-col justify-between shadow-2xl shadow-sky-500/20 hover:scale-[1.02] transition-all duration-300">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-sky-500 px-4 py-1 text-[10px] font-black uppercase text-white tracking-wider shadow-md shadow-sky-500/40">
+                Most Popular
               </div>
 
-              <ul className="mt-8 space-y-3 text-xs text-slate-300">
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> Multi-account team seats
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> Priority background worker queue
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> Custom RSS & webhook lead sources
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> Dedicated database connection pooling
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-sky-400" /> 24/7 SLA & priority onboarding
-                </li>
-              </ul>
+              <div>
+                <h3 className="text-lg font-bold text-white">Growth Agency</h3>
+                <p className="text-xs text-slate-400 mt-1">For active freelancers & small agencies.</p>
+                <div className="mt-6 flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-white">$29</span>
+                  <span className="text-xs text-slate-400 font-semibold">/month</span>
+                </div>
+
+                <ul className="mt-8 space-y-3 text-xs text-slate-300">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> Unlimited active leads & clients
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> Gemini AI intent scoring & analysis
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> Unified Inbox (Gmail + WhatsApp)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> Social Studio & automated post scheduler
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> Full conversion funnel analytics
+                  </li>
+                </ul>
+              </div>
+
+              <Link
+                href="/register"
+                className="mt-8 block w-full rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 py-3 text-center text-xs font-bold text-white shadow-lg shadow-sky-500/25 hover:opacity-95 transition"
+              >
+                Start 14-Day Free Trial
+              </Link>
             </div>
 
-            <Link
-              href="/register"
-              className="mt-8 block w-full rounded-2xl bg-slate-800 py-3 text-center text-xs font-bold text-white hover:bg-slate-700 transition"
-            >
-              Contact Sales
-            </Link>
+            {/* Enterprise Scale */}
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 flex flex-col justify-between hover:border-slate-700 transition duration-200">
+              <div>
+                <h3 className="text-lg font-bold text-white">Enterprise Scale</h3>
+                <p className="text-xs text-slate-400 mt-1">High volume teams & customized workflows.</p>
+                <div className="mt-6 flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-white">$79</span>
+                  <span className="text-xs text-slate-400 font-semibold">/month</span>
+                </div>
+
+                <ul className="mt-8 space-y-3 text-xs text-slate-300">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> Multi-account team seats
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> Priority background worker queue
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> Custom RSS & webhook lead sources
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> Dedicated database connection pooling
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-sky-400" /> 24/7 SLA & priority onboarding
+                  </li>
+                </ul>
+              </div>
+
+              <Link
+                href="/register"
+                className="mt-8 block w-full rounded-2xl bg-slate-800 py-3 text-center text-xs font-bold text-white hover:bg-slate-700 transition"
+              >
+                Contact Sales
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -676,13 +727,20 @@ function PublicLandingPage() {
       </section>
 
       {/* -------------------------------------------------------------------- */}
-      {/* Footer                                                               */}
+      {/* Footer with RealDeli_Tech Solutions Developer Credit                 */}
       {/* -------------------------------------------------------------------- */}
       <footer className="border-t border-slate-900 bg-slate-950 py-12 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <img src="/favicon.svg" alt="Client Magnet" className="h-6 w-6" />
-            <span className="font-bold text-slate-300">Client Magnet Platform</span>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="flex items-center gap-2">
+              <img src="/favicon.svg" alt="Client Magnet" className="h-6 w-6" />
+              <span className="font-bold text-slate-300">Client Magnet</span>
+            </div>
+            <span className="hidden sm:inline text-slate-700">•</span>
+            <span className="font-semibold text-sky-400">
+              Developed by RealDeli_Tech Solutions
+            </span>
+            <span className="hidden sm:inline text-slate-700">•</span>
             <span>&copy; {new Date().getFullYear()} All rights reserved.</span>
           </div>
 
@@ -707,7 +765,7 @@ function PublicLandingPage() {
 }
 
 /* ========================================================================== */
-/* 2. AUTHENTICATED SaaS DASHBOARD                                            */
+/* 2. AUTHENTICATED SaaS COMMAND DASHBOARD                                    */
 /* ========================================================================== */
 function AuthenticatedDashboard({ token, user }: { token: string | null; user: any }) {
   const [stats, setStats] = useState<LeadStatsSummary>({
