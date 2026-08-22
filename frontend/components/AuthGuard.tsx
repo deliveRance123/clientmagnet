@@ -34,10 +34,13 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white">
         <div className="flex flex-col items-center gap-4">
-          <div className="relative h-16 w-16 animate-pulse">
+          <div className="relative h-16 w-16 flex-shrink-0 animate-pulse">
             <img
               src="/favicon.svg"
               alt="Client Magnet"
+              width={64}
+              height={64}
+              style={{ width: "64px", height: "64px", maxWidth: "64px", maxHeight: "64px" }}
               className="h-16 w-16 drop-shadow-[0_0_20px_rgba(56,189,248,0.5)]"
             />
           </div>

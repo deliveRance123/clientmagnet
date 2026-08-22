@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none">
   <defs>
     <linearGradient id="magnetGrad" x1="16" y1="16" x2="112" y2="112" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#0284c7" />
@@ -30,10 +30,8 @@
     filter="url(#glow)"
   />
 
-  <!-- Magnet Pole Caps (Red/Silver accent styling) -->
-  <!-- Left North Pole (Cyan accent) -->
+  <!-- Magnet Pole Caps (Cyan / Purple accent styling) -->
   <path d="M32 40H52V52H32V40Z" fill="#38bdf8" rx="2" />
-  <!-- Right South Pole (Indigo accent) -->
   <path d="M76 40H96V52H76V40Z" fill="#a855f7" rx="2" />
 
   <!-- Energy Spark Center -->

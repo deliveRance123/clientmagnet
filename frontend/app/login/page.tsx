@@ -54,6 +54,9 @@ export default function LoginPage() {
             <img
               src="/favicon.svg"
               alt="Client Magnet"
+              width={56}
+              height={56}
+              style={{ width: "56px", height: "56px", maxWidth: "56px", maxHeight: "56px" }}
               className="h-14 w-14 mx-auto drop-shadow-[0_0_15px_rgba(56,189,248,0.5)] group-hover:scale-105 transition-transform"
             />
           </Link>

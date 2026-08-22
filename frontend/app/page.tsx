@@ -140,6 +140,9 @@ function PublicLandingPage() {
               <img
                 src="/favicon.svg"
                 alt="Client Magnet"
+                width={40}
+                height={40}
+                style={{ width: "40px", height: "40px", maxWidth: "40px", maxHeight: "40px" }}
                 className="h-10 w-10 drop-shadow-[0_0_15px_rgba(56,189,248,0.6)] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
               />
             </div>
@@ -835,7 +838,14 @@ function PublicLandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-2">
-              <img src="/favicon.svg" alt="Client Magnet" className="h-6 w-6" />
+              <img
+                src="/favicon.svg"
+                alt="Client Magnet"
+                width={24}
+                height={24}
+                style={{ width: "24px", height: "24px", maxWidth: "24px", maxHeight: "24px" }}
+                className="h-6 w-6"
+              />
               <span className="font-bold text-slate-300">Client Magnet</span>
             </div>
             <span className="hidden sm:inline text-slate-700">•</span>

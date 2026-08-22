@@ -68,6 +68,9 @@ export default function Sidebar() {
           <img
             src="/favicon.svg"
             alt="Client Magnet"
+            width={32}
+            height={32}
+            style={{ width: "32px", height: "32px", maxWidth: "32px", maxHeight: "32px" }}
             className="h-8 w-8 drop-shadow-[0_0_8px_rgba(56,189,248,0.4)]"
           />
           <div>
