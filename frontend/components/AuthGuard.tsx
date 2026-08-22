@@ -3,7 +3,6 @@
 import React, { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import Image from "next/image";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 
@@ -71,13 +70,13 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     return <div className="min-h-screen bg-slate-950 text-white selection:bg-sky-500 selection:text-white">{children}</div>;
   }
 
-  // Protected Application Dashboard layout -> Sidebar + Header + Page Content
+  // Protected Application Dashboard layout -> Responsive Desktop / Mobile Layout
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 overflow-x-hidden">
       <Sidebar />
-      <div className="flex flex-1 flex-col pl-64 transition-all duration-200">
+      <div className="flex flex-1 flex-col w-full md:pl-64 transition-all duration-200 min-w-0">
         <Header />
-        <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto">{children}</main>
+        <main className="flex-1 p-3.5 sm:p-6 md:p-8 max-w-7xl w-full mx-auto min-w-0">{children}</main>
       </div>
     </div>
   );

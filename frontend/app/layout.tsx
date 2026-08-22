@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
+import { UIProvider } from "@/lib/ui-context";
 import AuthGuard from "@/components/AuthGuard";
 
 export const metadata: Metadata = {
@@ -24,9 +25,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
-      <body className="h-full antialiased font-sans text-slate-900 bg-slate-50">
+      <body className="h-full antialiased font-sans text-slate-900 bg-slate-50 overflow-x-hidden">
         <AuthProvider>
-          <AuthGuard>{children}</AuthGuard>
+          <UIProvider>
+            <AuthGuard>{children}</AuthGuard>
+          </UIProvider>
         </AuthProvider>
       </body>
     </html>

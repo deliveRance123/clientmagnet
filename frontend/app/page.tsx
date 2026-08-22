@@ -34,9 +34,8 @@ import {
   Flame,
   BarChart3,
   ChevronRight,
-  Code2,
-  Cpu,
-  Workflow,
+  Menu,
+  X,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -55,6 +54,26 @@ export default function HomePage() {
 /* 1. PUBLIC MARKETING LANDING PAGE                                           */
 /* ========================================================================== */
 function PublicLandingPage() {
+  // Mobile hamburger menu state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Dynamic animated rotating service words in headline
+  const rotatingWords = [
+    "High-Paying Clients",
+    "Next.js Web Platforms",
+    "Figma Brand Identities",
+    "WhatsApp AI Chatbots",
+    "Enterprise Retainers",
+  ];
+  const [wordIndex, setWordIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWordIndex((prev) => (prev + 1) % rotatingWords.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Interactive lead simulator state
   const [selectedDemoService, setSelectedDemoService] = useState<
     "web" | "graphics" | "bot"
@@ -107,16 +126,17 @@ function PublicLandingPage() {
     <div className="relative min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden font-sans selection:bg-sky-500 selection:text-white">
       {/* Dynamic Background Ambient Gradients with Float & Glow Animations */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] bg-gradient-to-b from-sky-500/20 via-indigo-500/10 to-transparent blur-3xl pointer-events-none -z-10 animate-pulse-glow" />
-      <div className="absolute top-1/4 -left-48 w-96 h-96 rounded-full bg-sky-600/15 blur-[130px] pointer-events-none -z-10 animate-float" />
-      <div className="absolute top-2/3 -right-48 w-96 h-96 rounded-full bg-indigo-600/15 blur-[130px] pointer-events-none -z-10 animate-float" style={{ animationDelay: "2s" }} />
+      <div className="absolute top-1/4 -left-48 w-80 sm:w-96 h-80 sm:h-96 rounded-full bg-sky-600/15 blur-[120px] pointer-events-none -z-10 animate-float" />
+      <div className="absolute top-2/3 -right-48 w-80 sm:w-96 h-80 sm:h-96 rounded-full bg-indigo-600/15 blur-[120px] pointer-events-none -z-10 animate-float" style={{ animationDelay: "2s" }} />
 
       {/* -------------------------------------------------------------------- */}
-      {/* Strictly Sticky Navigation Header                                    */}
+      {/* Fixed Top Navigation Bar (Permanently Fixed On Scroll)               */}
       {/* -------------------------------------------------------------------- */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/90 border-b border-slate-800/80 shadow-lg shadow-black/40 transition-all">
+      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-slate-950/95 border-b border-slate-800/80 shadow-xl shadow-black/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          {/* Logo & Brand Name */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative h-10 w-10">
+            <div className="relative h-10 w-10 flex-shrink-0">
               <img
                 src="/favicon.svg"
                 alt="Client Magnet"
@@ -124,14 +144,15 @@ function PublicLandingPage() {
               />
             </div>
             <div>
-              <span className="text-xl font-black tracking-tight text-white flex items-center gap-1.5">
+              <span className="text-xl font-black tracking-tight text-white flex items-center gap-1.5 leading-none">
                 Client Magnet
               </span>
-              <p className="text-[10px] text-sky-400 font-medium">Global Client Discovery & CRM</p>
+              <p className="text-[10px] text-sky-400 font-semibold mt-1">Global Client Discovery & CRM</p>
             </div>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-300">
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-300">
             <a href="#features" className="hover:text-sky-400 transition-colors duration-200">
               Features
             </a>
@@ -147,9 +168,10 @@ function PublicLandingPage() {
             <a href="#pricing" className="hover:text-sky-400 transition-colors duration-200">
               Pricing
             </a>
-          </nav>
+          </div>
 
-          <div className="flex items-center gap-3">
+          {/* Desktop Right Action Buttons */}
+          <div className="hidden md:flex items-center gap-3">
             <Link
               href="/login"
               className="px-4 py-2 text-sm font-bold text-slate-300 hover:text-white transition-colors"
@@ -163,34 +185,114 @@ function PublicLandingPage() {
               Get Started Free <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
+
+          {/* Mobile Hamburger Toggle Button */}
+          <div className="flex md:hidden items-center gap-2">
+            <Link
+              href="/login"
+              className="px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white"
+            >
+              Sign In
+            </Link>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="rounded-xl border border-slate-800 bg-slate-900/90 p-2.5 text-slate-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+              aria-label="Toggle mobile menu"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
-      </header>
+
+        {/* Mobile Hamburger Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-b border-slate-800 bg-slate-950/98 px-5 py-6 shadow-2xl animate-in slide-in-from-top-4 duration-200">
+            <div className="flex flex-col space-y-4 text-sm font-bold">
+              <a
+                href="#features"
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-900 hover:text-sky-400 transition"
+              >
+                Features
+              </a>
+              <a
+                href="#simulator"
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-900 hover:text-sky-400 transition"
+              >
+                Live Demo
+              </a>
+              <a
+                href="#pipeline"
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-900 hover:text-sky-400 transition"
+              >
+                CRM Pipeline
+              </a>
+              <a
+                href="#services"
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-900 hover:text-sky-400 transition"
+              >
+                Supported Services
+              </a>
+              <a
+                href="#pricing"
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-900 hover:text-sky-400 transition"
+              >
+                Pricing
+              </a>
+
+              <div className="pt-4 border-t border-slate-800 flex flex-col gap-3">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center rounded-xl border border-slate-700 bg-slate-900 py-3 text-sm font-bold text-white hover:bg-slate-800"
+                >
+                  Sign In to Dashboard
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 py-3 text-sm font-bold text-white shadow-lg shadow-sky-500/25"
+                >
+                  Get Started Free
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+      </nav>
 
       {/* -------------------------------------------------------------------- */}
-      {/* Hero Section                                                         */}
+      {/* Hero Section with Animated Headline Rotation                        */}
       {/* -------------------------------------------------------------------- */}
-      <section className="relative pt-16 pb-20 md:pt-24 md:pb-32 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/90 border border-sky-500/30 px-4 py-1.5 text-xs font-bold text-sky-400 shadow-inner mb-6 backdrop-blur-md hover:border-sky-400 transition-colors">
+      <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/90 border border-sky-500/30 px-4 py-1.5 text-xs font-bold text-sky-400 shadow-inner mb-6 backdrop-blur-md hover:border-sky-400 transition-colors animate-float">
           <Zap className="h-3.5 w-3.5 text-sky-400 animate-pulse" />
           <span>The Intelligent Client Discovery & CRM Operating System</span>
         </div>
 
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white max-w-4xl mx-auto leading-tight">
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white max-w-4xl mx-auto leading-tight min-h-[120px] sm:min-h-[140px]">
           Turn Global Freelance Opportunities into{" "}
-          <span className="bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent animate-gradient">
-            High-Paying Clients
+          <span
+            key={wordIndex}
+            className="inline-block bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent animate-in fade-in zoom-in-95 duration-500"
+          >
+            {rotatingWords[wordIndex]}
           </span>{" "}
           Automatically.
         </h1>
 
-        <p className="mt-6 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+        <p className="mt-6 text-sm sm:text-base md:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
           Discover verified freelance opportunities tailored to your services, score client intent with Gemini AI, communicate across WhatsApp & Email, and close deals in a visual 9-stage CRM.
         </p>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <Link
             href="/register"
-            className="group inline-flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-sky-500/25 hover:shadow-sky-500/40 hover:scale-[1.02] active:scale-95 transition-all duration-200"
+            className="group inline-flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 px-6 sm:px-8 py-3.5 sm:py-4 text-sm sm:text-base font-bold text-white shadow-xl shadow-sky-500/25 hover:shadow-sky-500/40 hover:scale-[1.02] active:scale-95 transition-all duration-200"
           >
             <Sparkles className="h-5 w-5 text-sky-200 animate-spin" style={{ animationDuration: "8s" }} />
             Start Acquiring Clients Free
@@ -198,14 +300,14 @@ function PublicLandingPage() {
           </Link>
           <a
             href="#simulator"
-            className="inline-flex items-center gap-2 rounded-2xl bg-slate-900/90 border border-slate-800 px-7 py-4 text-base font-bold text-slate-300 hover:bg-slate-800 hover:text-white hover:border-slate-700 transition duration-200"
+            className="inline-flex items-center gap-2 rounded-2xl bg-slate-900/90 border border-slate-800 px-6 sm:px-7 py-3.5 sm:py-4 text-sm sm:text-base font-bold text-slate-300 hover:bg-slate-800 hover:text-white hover:border-slate-700 transition duration-200"
           >
             Explore Interactive Demo <ChevronRight className="h-4 w-4" />
           </a>
         </div>
 
         {/* Security & Architecture Badges */}
-        <div className="mt-14 flex flex-wrap items-center justify-center gap-6 text-xs font-semibold text-slate-400">
+        <div className="mt-14 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs font-semibold text-slate-400">
           <span className="flex items-center gap-1.5 rounded-full bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 backdrop-blur-sm hover:border-slate-700 transition">
             <ShieldCheck className="h-4 w-4 text-sky-400" />
             Argon2id + AES-256 Security
@@ -234,18 +336,18 @@ function PublicLandingPage() {
             <h2 className="text-xs font-black uppercase tracking-widest text-sky-400">
               Live Opportunity Scout Simulator
             </h2>
-            <p className="mt-2 text-3xl font-black text-white">
+            <p className="mt-2 text-2xl sm:text-3xl font-black text-white">
               See How Client Magnet Automatically Matches & Scores Leads
             </p>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-xs sm:text-sm text-slate-400">
               Select one of your core service tracks below to simulate live discovery and Gemini AI intent analysis.
             </p>
 
             {/* Service Filter Tabs */}
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <div className="mt-6 flex flex-wrap justify-center gap-2 sm:gap-3">
               <button
                 onClick={() => triggerSimulate("web")}
-                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all duration-200 ${
+                className={`inline-flex items-center gap-2 rounded-xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-bold transition-all duration-200 ${
                   selectedDemoService === "web"
                     ? "bg-sky-500 text-white shadow-md shadow-sky-500/30 scale-105"
                     : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
@@ -255,7 +357,7 @@ function PublicLandingPage() {
               </button>
               <button
                 onClick={() => triggerSimulate("graphics")}
-                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all duration-200 ${
+                className={`inline-flex items-center gap-2 rounded-xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-bold transition-all duration-200 ${
                   selectedDemoService === "graphics"
                     ? "bg-sky-500 text-white shadow-md shadow-sky-500/30 scale-105"
                     : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
@@ -265,7 +367,7 @@ function PublicLandingPage() {
               </button>
               <button
                 onClick={() => triggerSimulate("bot")}
-                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all duration-200 ${
+                className={`inline-flex items-center gap-2 rounded-xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-bold transition-all duration-200 ${
                   selectedDemoService === "bot"
                     ? "bg-sky-500 text-white shadow-md shadow-sky-500/30 scale-105"
                     : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
@@ -277,10 +379,10 @@ function PublicLandingPage() {
           </div>
 
           {/* Simulated Lead Card Display with Smooth State Animation */}
-          <div className="max-w-4xl mx-auto rounded-3xl border border-slate-700 bg-slate-900/90 p-6 md:p-8 shadow-2xl shadow-sky-500/10 backdrop-blur-md transition-all duration-300 hover:border-sky-500/40">
+          <div className="max-w-4xl mx-auto rounded-3xl border border-slate-700 bg-slate-900/90 p-5 sm:p-8 shadow-2xl shadow-sky-500/10 backdrop-blur-md transition-all duration-300 hover:border-sky-500/40">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="rounded-md bg-sky-500/20 px-2.5 py-0.5 text-[11px] font-bold text-sky-300 border border-sky-500/30">
                     {currentDemo.source}
                   </span>
@@ -288,18 +390,18 @@ function PublicLandingPage() {
                     URGENCY: {currentDemo.urgency}
                   </span>
                 </div>
-                <h3 className="mt-2 text-xl font-bold text-white">{currentDemo.title}</h3>
+                <h3 className="mt-2 text-lg sm:text-xl font-bold text-white">{currentDemo.title}</h3>
               </div>
 
               {/* Score Meter */}
-              <div className="flex items-center gap-4 bg-slate-950/90 rounded-2xl p-4 border border-slate-800 shadow-inner">
+              <div className="flex items-center gap-4 bg-slate-950/90 rounded-2xl p-3.5 sm:p-4 border border-slate-800 shadow-inner self-start md:self-auto">
                 <div className="text-right">
-                  <div className="text-xs font-bold text-slate-400">Gemini Intent Score</div>
+                  <div className="text-[11px] font-bold text-slate-400">Gemini Intent Score</div>
                   <div className="text-2xl font-black text-sky-400">
                     {isSimulating ? "..." : `${simulatedScore}%`}
                   </div>
                 </div>
-                <div className="h-12 w-12 rounded-full border-4 border-sky-500 flex items-center justify-center bg-sky-500/10 animate-pulse">
+                <div className="h-11 w-11 rounded-full border-4 border-sky-500 flex items-center justify-center bg-sky-500/10 animate-pulse">
                   <Flame className="h-5 w-5 text-sky-400" />
                 </div>
               </div>
@@ -361,17 +463,17 @@ function PublicLandingPage() {
           <h2 className="text-xs font-black uppercase tracking-widest text-sky-400">
             Enterprise Architecture
           </h2>
-          <p className="mt-2 text-3xl sm:text-4xl font-black text-white">
+          <p className="mt-2 text-2xl sm:text-3xl md:text-4xl font-black text-white">
             Built for High-Growth Freelancers & Agencies
           </p>
-          <p className="mt-3 text-sm text-slate-400">
+          <p className="mt-3 text-xs sm:text-sm text-slate-400">
             Everything you need to discover, qualify, outreach, and retain clients without external SaaS chaos.
           </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Feature 1 */}
-          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-sky-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-sky-500/10">
+          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8 hover:border-sky-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-sky-500/10">
             <div>
               <div className="h-12 w-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-6 group-hover:scale-110 group-hover:bg-sky-500/20 transition-all">
                 <Globe className="h-6 w-6" />
@@ -387,7 +489,7 @@ function PublicLandingPage() {
           </div>
 
           {/* Feature 2 */}
-          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-indigo-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-indigo-500/10">
+          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8 hover:border-indigo-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-indigo-500/10">
             <div>
               <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6 group-hover:scale-110 group-hover:bg-indigo-500/20 transition-all">
                 <BarChart3 className="h-6 w-6" />
@@ -403,7 +505,7 @@ function PublicLandingPage() {
           </div>
 
           {/* Feature 3 */}
-          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-emerald-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-emerald-500/10">
+          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8 hover:border-emerald-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-emerald-500/10">
             <div>
               <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all">
                 <MessageSquare className="h-6 w-6" />
@@ -419,7 +521,7 @@ function PublicLandingPage() {
           </div>
 
           {/* Feature 4 */}
-          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-purple-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-purple-500/10">
+          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8 hover:border-purple-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-purple-500/10">
             <div>
               <div className="h-12 w-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-6 group-hover:scale-110 group-hover:bg-purple-500/20 transition-all">
                 <Share2 className="h-6 w-6" />
@@ -435,7 +537,7 @@ function PublicLandingPage() {
           </div>
 
           {/* Feature 5 */}
-          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-amber-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-amber-500/10">
+          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8 hover:border-amber-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-amber-500/10">
             <div>
               <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-6 group-hover:scale-110 group-hover:bg-amber-500/20 transition-all">
                 <TrendingUp className="h-6 w-6" />
@@ -451,7 +553,7 @@ function PublicLandingPage() {
           </div>
 
           {/* Feature 6 */}
-          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-8 hover:border-rose-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-rose-500/10">
+          <div className="group rounded-3xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8 hover:border-rose-500/50 hover:bg-slate-900/90 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-rose-500/10">
             <div>
               <div className="h-12 w-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-6 group-hover:scale-110 group-hover:bg-rose-500/20 transition-all">
                 <ShieldCheck className="h-6 w-6" />
@@ -477,16 +579,16 @@ function PublicLandingPage() {
             <h2 className="text-xs font-black uppercase tracking-widest text-sky-400">
               Core Service Offerings
             </h2>
-            <p className="mt-2 text-3xl font-black text-white">
+            <p className="mt-2 text-2xl sm:text-3xl font-black text-white">
               Pre-Configured for the 3 Major In-Demand High-Ticket Niches
             </p>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-xs sm:text-sm text-slate-400">
               Match incoming client inquiries to your custom deliverables, pricing, and portfolios.
             </p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 hover:border-sky-500/50 transition duration-300">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 sm:p-8 hover:border-sky-500/50 transition duration-300">
               <div className="h-10 w-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center mb-4">
                 <Layout className="h-5 w-5" />
               </div>
@@ -497,7 +599,7 @@ function PublicLandingPage() {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 hover:border-indigo-500/50 transition duration-300">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 sm:p-8 hover:border-indigo-500/50 transition duration-300">
               <div className="h-10 w-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4">
                 <Palette className="h-5 w-5" />
               </div>
@@ -508,7 +610,7 @@ function PublicLandingPage() {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 hover:border-emerald-500/50 transition duration-300">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 sm:p-8 hover:border-emerald-500/50 transition duration-300">
               <div className="h-10 w-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4">
                 <Bot className="h-5 w-5" />
               </div>
@@ -530,15 +632,15 @@ function PublicLandingPage() {
           <h2 className="text-xs font-black uppercase tracking-widest text-sky-400">
             Deal Flow Pipeline
           </h2>
-          <p className="mt-2 text-3xl font-black text-white">
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-white">
             The 9-Stage High-Conversion Funnel
           </p>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-2 text-xs sm:text-sm text-slate-400">
             Never lose track of a prospect. Move leads seamlessly from first discovery to closed client.
           </p>
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
           {[
             { stage: "NEW", desc: "Just discovered", color: "border-sky-500/40 bg-sky-500/10 text-sky-300" },
             { stage: "QUALIFIED", desc: "Budget & Fit", color: "border-blue-500/40 bg-blue-500/10 text-blue-300" },
@@ -573,20 +675,20 @@ function PublicLandingPage() {
             <h2 className="text-xs font-black uppercase tracking-widest text-sky-400">
               Simple Pricing
             </h2>
-            <p className="mt-2 text-3xl font-black text-white">Start Free, Scale as You Win Deals</p>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-2xl sm:text-3xl font-black text-white">Start Free, Scale as You Win Deals</p>
+            <p className="mt-2 text-xs sm:text-sm text-slate-400">
               No credit card required. Upgrade anytime for higher discovery limits and automated scheduling.
             </p>
           </div>
 
           <div className="grid gap-8 lg:grid-cols-3 max-w-5xl mx-auto">
             {/* Starter Plan */}
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 flex flex-col justify-between hover:border-slate-700 transition duration-200">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 sm:p-8 flex flex-col justify-between hover:border-slate-700 transition duration-200">
               <div>
                 <h3 className="text-lg font-bold text-white">Free Starter</h3>
                 <p className="text-xs text-slate-400 mt-1">Perfect for solo freelancers getting started.</p>
                 <div className="mt-6 flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-white">$0</span>
+                  <span className="text-3xl sm:text-4xl font-black text-white">$0</span>
                   <span className="text-xs text-slate-400 font-semibold">/forever</span>
                 </div>
 
@@ -618,7 +720,7 @@ function PublicLandingPage() {
             </div>
 
             {/* Growth Plan (Popular) */}
-            <div className="relative rounded-3xl border-2 border-sky-500 bg-gradient-to-b from-slate-900 to-slate-950 p-8 flex flex-col justify-between shadow-2xl shadow-sky-500/20 hover:scale-[1.02] transition-all duration-300">
+            <div className="relative rounded-3xl border-2 border-sky-500 bg-gradient-to-b from-slate-900 to-slate-950 p-6 sm:p-8 flex flex-col justify-between shadow-2xl shadow-sky-500/20 hover:scale-[1.02] transition-all duration-300">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-sky-500 px-4 py-1 text-[10px] font-black uppercase text-white tracking-wider shadow-md shadow-sky-500/40">
                 Most Popular
               </div>
@@ -627,7 +729,7 @@ function PublicLandingPage() {
                 <h3 className="text-lg font-bold text-white">Growth Agency</h3>
                 <p className="text-xs text-slate-400 mt-1">For active freelancers & small agencies.</p>
                 <div className="mt-6 flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-white">$29</span>
+                  <span className="text-3xl sm:text-4xl font-black text-white">$29</span>
                   <span className="text-xs text-slate-400 font-semibold">/month</span>
                 </div>
 
@@ -659,12 +761,12 @@ function PublicLandingPage() {
             </div>
 
             {/* Enterprise Scale */}
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 flex flex-col justify-between hover:border-slate-700 transition duration-200">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 sm:p-8 flex flex-col justify-between hover:border-slate-700 transition duration-200">
               <div>
                 <h3 className="text-lg font-bold text-white">Enterprise Scale</h3>
                 <p className="text-xs text-slate-400 mt-1">High volume teams & customized workflows.</p>
                 <div className="mt-6 flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-white">$79</span>
+                  <span className="text-3xl sm:text-4xl font-black text-white">$79</span>
                   <span className="text-xs text-slate-400 font-semibold">/month</span>
                 </div>
 
@@ -702,23 +804,23 @@ function PublicLandingPage() {
       {/* Final Call to Action Banner                                          */}
       {/* -------------------------------------------------------------------- */}
       <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-700 p-10 md:p-14 text-center shadow-2xl shadow-sky-500/20">
-          <h2 className="text-3xl sm:text-4xl font-black text-white max-w-2xl mx-auto leading-tight">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-700 p-8 sm:p-12 md:p-14 text-center shadow-2xl shadow-sky-500/20">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white max-w-2xl mx-auto leading-tight">
             Ready to Magnetize High-Ticket Freelance Clients?
           </h2>
-          <p className="mt-4 text-sm sm:text-base text-sky-100 max-w-xl mx-auto">
+          <p className="mt-4 text-xs sm:text-sm md:text-base text-sky-100 max-w-xl mx-auto">
             Set up your services catalog in 2 minutes and start matching qualified prospects immediately.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
+          <div className="mt-8 flex flex-wrap justify-center gap-3 sm:gap-4">
             <Link
               href="/register"
-              className="inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-3.5 text-sm font-bold text-sky-700 shadow-xl hover:bg-sky-50 active:scale-95 transition"
+              className="inline-flex items-center gap-2 rounded-2xl bg-white px-6 sm:px-8 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-sky-700 shadow-xl hover:bg-sky-50 active:scale-95 transition"
             >
               Create Free Account <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 rounded-2xl bg-sky-800/40 border border-white/20 px-6 py-3.5 text-sm font-bold text-white hover:bg-sky-800/60 transition"
+              className="inline-flex items-center gap-2 rounded-2xl bg-sky-800/40 border border-white/20 px-5 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-white hover:bg-sky-800/60 transition"
             >
               Sign In to Existing Account
             </Link>
@@ -730,8 +832,8 @@ function PublicLandingPage() {
       {/* Footer with RealDeli_Tech Solutions Developer Credit                 */}
       {/* -------------------------------------------------------------------- */}
       <footer className="border-t border-slate-900 bg-slate-950 py-12 text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex flex-col sm:flex-row items-center gap-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-2">
               <img src="/favicon.svg" alt="Client Magnet" className="h-6 w-6" />
               <span className="font-bold text-slate-300">Client Magnet</span>
@@ -744,7 +846,7 @@ function PublicLandingPage() {
             <span>&copy; {new Date().getFullYear()} All rights reserved.</span>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
             <Link href="/login" className="hover:text-slate-300 transition-colors">
               Login
             </Link>
@@ -854,19 +956,19 @@ function AuthenticatedDashboard({ token, user }: { token: string | null; user: a
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Dynamic Welcome Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-sky-600 via-sky-500 to-indigo-600 p-8 text-white shadow-xl shadow-sky-500/10">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-sky-600 via-sky-500 to-indigo-600 p-6 sm:p-8 text-white shadow-xl shadow-sky-500/10">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-md">
               <ShieldCheck className="h-3.5 w-3.5 text-sky-200" />
               Isolated PostgreSQL Environment Active
             </div>
-            <h1 className="mt-3 text-3xl md:text-4xl font-black tracking-tight">
+            <h1 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-black tracking-tight">
               Welcome back, {displayName}!
             </h1>
-            <p className="mt-2 text-sm text-sky-100 max-w-xl leading-relaxed">
+            <p className="mt-2 text-xs sm:text-sm text-sky-100 max-w-xl leading-relaxed">
               Your client acquisition command center is connected. Manage your services catalog, track deal stages, and close leads.
             </p>
           </div>
@@ -874,14 +976,14 @@ function AuthenticatedDashboard({ token, user }: { token: string | null; user: a
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/crm"
-              className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-2.5 text-sm font-bold text-sky-700 shadow-md hover:bg-sky-50 active:scale-95 transition"
+              className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-bold text-sky-700 shadow-md hover:bg-sky-50 active:scale-95 transition"
             >
               <BarChart3 className="h-4 w-4" />
               Open CRM Pipeline
             </Link>
             <Link
               href="/leads"
-              className="inline-flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-md border border-white/20 hover:bg-white/25 active:scale-95 transition"
+              className="inline-flex items-center gap-2 rounded-2xl bg-white/15 px-4 py-2.5 text-xs sm:text-sm font-bold text-white backdrop-blur-md border border-white/20 hover:bg-white/25 active:scale-95 transition"
             >
               <Plus className="h-4 w-4" />
               Import Lead
@@ -895,33 +997,33 @@ function AuthenticatedDashboard({ token, user }: { token: string | null; user: a
       {/* PostgreSQL Dashboard Summary Statistics */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+          <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-sky-600" />
             Live Pipeline Performance
           </h2>
-          <span className="text-xs font-semibold text-slate-400">PostgreSQL Aggregated</span>
+          <span className="text-[11px] sm:text-xs font-semibold text-slate-400">PostgreSQL Aggregated</span>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           {statCards.map((card) => {
             const Icon = card.icon;
             return (
               <div
                 key={card.title}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+                className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm transition hover:shadow-md"
               >
                 <div className="flex items-center justify-between">
-                  <span className={`rounded-xl p-2.5 border ${card.color}`}>
-                    <Icon className="h-5 w-5" />
+                  <span className={`rounded-xl p-2 sm:p-2.5 border ${card.color}`}>
+                    <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                   </span>
-                  <span className="text-2xl font-black text-slate-900">
+                  <span className="text-xl sm:text-2xl font-black text-slate-900">
                     {loading ? "..." : card.value}
                   </span>
                 </div>
-                <h3 className="mt-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <h3 className="mt-3 text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">
                   {card.title}
                 </h3>
-                <p className="text-[11px] text-slate-400 mt-0.5">{card.description}</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">{card.description}</p>
               </div>
             );
           })}
@@ -931,10 +1033,10 @@ function AuthenticatedDashboard({ token, user }: { token: string | null; user: a
       {/* Recent Leads & Services Summary */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Recent Leads (2 cols) */}
-        <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div>
-              <h3 className="font-bold text-slate-900">Recent Pipeline Inquiries</h3>
+              <h3 className="font-bold text-slate-900 text-sm sm:text-base">Recent Pipeline Inquiries</h3>
               <p className="text-xs text-slate-400 mt-0.5">Top latest leads in your pipeline</p>
             </div>
             <Link
@@ -963,8 +1065,8 @@ function AuthenticatedDashboard({ token, user }: { token: string | null; user: a
               </Link>
             </div>
           ) : (
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-600">
+            <div className="mt-4 overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+              <table className="w-full text-left text-xs sm:text-sm text-slate-600 min-w-[500px]">
                 <thead>
                   <tr className="border-b border-slate-100 text-xs font-bold uppercase text-slate-400">
                     <th className="py-2.5">Name</th>
@@ -1016,10 +1118,10 @@ function AuthenticatedDashboard({ token, user }: { token: string | null; user: a
         </div>
 
         {/* Services Widget (1 col) */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h3 className="font-bold text-slate-900">Active Services</h3>
+              <h3 className="font-bold text-slate-900 text-sm sm:text-base">Active Services</h3>
               <Link
                 href="/services"
                 className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1"
@@ -1063,25 +1165,25 @@ function AuthenticatedDashboard({ token, user }: { token: string | null; user: a
       {/* Platform Navigation Grid */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-slate-900 tracking-tight">Platform Command Navigation</h2>
-          <span className="text-xs text-slate-400">All Modules Enabled</span>
+          <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">Platform Command Navigation</h2>
+          <span className="text-[11px] sm:text-xs text-slate-400">All Modules Enabled</span>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {moduleSections.map((mod) => {
             const Icon = mod.icon;
             return (
               <Link
                 key={mod.title}
                 href={mod.href}
-                className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:border-sky-300 hover:shadow-md"
+                className="group rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm transition-all duration-200 hover:border-sky-300 hover:shadow-md"
               >
                 <div className="flex items-center justify-between">
-                  <span className={`rounded-xl p-2.5 ${mod.color}`}>
-                    <Icon className="h-5 w-5" />
+                  <span className={`rounded-xl p-2 sm:p-2.5 ${mod.color}`}>
+                    <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                   </span>
                   <ArrowRight className="h-4 w-4 text-slate-300 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-sky-500" />
                 </div>
-                <h3 className="mt-4 font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
+                <h3 className="mt-3 sm:mt-4 font-bold text-slate-900 text-sm sm:text-base group-hover:text-sky-600 transition-colors">
                   {mod.title}
                 </h3>
                 <p className="mt-0.5 text-xs text-slate-400">{mod.count}</p>
