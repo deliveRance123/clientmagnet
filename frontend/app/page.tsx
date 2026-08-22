@@ -60,9 +60,9 @@ function PublicLandingPage() {
   // Dynamic animated rotating service words in headline
   const rotatingWords = [
     "High-Paying Clients",
-    "Next.js Web Platforms",
-    "Figma Brand Identities",
-    "WhatsApp AI Chatbots",
+    "Custom Web Applications",
+    "Complete Visual Identities",
+    "Automated Client Bots",
     "Enterprise Retainers",
   ];
   const [wordIndex, setWordIndex] = useState(0);
@@ -85,7 +85,7 @@ function PublicLandingPage() {
     web: {
       title: "Fintech Enterprise - Full Web Platform & SaaS Dashboard",
       source: "LINKEDIN VERIFIED",
-      detectedNeed: "Next.js 14, Tailwind CSS, Stripe integration, & PostgreSQL portal",
+      detectedNeed: "Custom modern portal, responsive dashboard, Stripe integration, & customer portal",
       matchedService: "Website Design & Development",
       budget: "$5,000 - $8,000",
       score: 95,
@@ -94,7 +94,7 @@ function PublicLandingPage() {
     graphics: {
       title: "E-Commerce Brand - Complete Visual Identity & 3D Assets",
       source: "REMOTE JOB BOARD",
-      detectedNeed: "Brand guidelines, Figma UI kit, product packaging & social templates",
+      detectedNeed: "Brand guidelines, design system, product packaging & marketing assets",
       matchedService: "Graphics & Brand Identity Design",
       budget: "$3,200 fixed",
       score: 89,
@@ -103,7 +103,7 @@ function PublicLandingPage() {
     bot: {
       title: "Logistics Enterprise - Automated Customer Support & Lead Routing Bot",
       source: "META WHATSAPP / API",
-      detectedNeed: "FastAPI, Meta WhatsApp Cloud API integration, CRM webhooks",
+      detectedNeed: "Instant inquiry response automation, lead routing, & omnichannel webhooks",
       matchedService: "Bot & Automation Development",
       budget: "$4,500 - $6,000",
       score: 98,
@@ -286,7 +286,7 @@ function PublicLandingPage() {
         </h1>
 
         <p className="mt-6 text-sm sm:text-base md:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
-          Discover verified freelance opportunities tailored to your services, score client intent with Gemini AI, communicate across WhatsApp & Email, and close deals in a visual 9-stage CRM.
+          Discover verified freelance opportunities tailored to your services, score client intent with AI, communicate across WhatsApp & Email, and close deals in a visual 9-stage CRM.
         </p>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -310,15 +310,15 @@ function PublicLandingPage() {
         <div className="mt-14 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs font-semibold text-slate-400">
           <span className="flex items-center gap-1.5 rounded-full bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 backdrop-blur-sm hover:border-slate-700 transition">
             <ShieldCheck className="h-4 w-4 text-sky-400" />
-            Argon2id + AES-256 Security
+            Bank-Grade 256-bit Encryption
           </span>
           <span className="flex items-center gap-1.5 rounded-full bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 backdrop-blur-sm hover:border-slate-700 transition">
             <Database className="h-4 w-4 text-indigo-400" />
-            Pure PostgreSQL Architecture
+            Dedicated Cloud Infrastructure
           </span>
           <span className="flex items-center gap-1.5 rounded-full bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 backdrop-blur-sm hover:border-slate-700 transition">
             <Lock className="h-4 w-4 text-emerald-400" />
-            100% Tenant Isolated
+            100% Tenant Isolation
           </span>
           <span className="flex items-center gap-1.5 rounded-full bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 backdrop-blur-sm hover:border-slate-700 transition">
             <Globe className="h-4 w-4 text-blue-400" />
@@ -340,7 +340,7 @@ function PublicLandingPage() {
               See How Client Magnet Automatically Matches & Scores Leads
             </p>
             <p className="mt-2 text-xs sm:text-sm text-slate-400">
-              Select one of your core service tracks below to simulate live discovery and Gemini AI intent analysis.
+              Select one of your core service tracks below to simulate live discovery and AI intent analysis.
             </p>
 
             {/* Service Filter Tabs */}
@@ -396,7 +396,7 @@ function PublicLandingPage() {
               {/* Score Meter */}
               <div className="flex items-center gap-4 bg-slate-950/90 rounded-2xl p-3.5 sm:p-4 border border-slate-800 shadow-inner self-start md:self-auto">
                 <div className="text-right">
-                  <div className="text-[11px] font-bold text-slate-400">Gemini Intent Score</div>
+                  <div className="text-[11px] font-bold text-slate-400">AI Intent Score</div>
                   <div className="text-2xl font-black text-sky-400">
                     {isSimulating ? "..." : `${simulatedScore}%`}
                   </div>
@@ -434,7 +434,7 @@ function PublicLandingPage() {
                 <div>
                   <div className="text-xs font-bold text-slate-400">Recommended Next Step:</div>
                   <div className="text-xs text-slate-300 mt-0.5">
-                    Generate AI consultative email draft and transition stage to <span className="font-bold text-sky-400">QUALIFIED</span>.
+                    Generate AI consultative outreach draft and transition stage to <span className="font-bold text-sky-400">QUALIFIED</span>.
                   </div>
                 </div>
               </div>
@@ -442,7 +442,7 @@ function PublicLandingPage() {
 
             <div className="mt-8 pt-6 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
               <span className="text-xs text-slate-400">
-                🔒 Duplicate checks and tenant isolation validated in PostgreSQL.
+                🔒 Automated duplicate detection and isolated tenant protections active.
               </span>
               <Link
                 href="/register"
@@ -480,11 +480,11 @@ function PublicLandingPage() {
               </div>
               <h3 className="text-lg font-bold text-white group-hover:text-sky-300 transition-colors">Global Opportunity Discovery</h3>
               <p className="mt-2 text-sm text-slate-400 leading-relaxed">
-                Connect multiple legitimate job boards, RSS feeds, and manual CSV imports with automatic deduplication and HTML stripping.
+                Connect multiple legitimate job feeds, global portals, and manual CSV imports with automatic deduplication.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-slate-800 text-xs font-bold text-sky-400 flex items-center gap-1">
-              Normalized Schema <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+              Normalized Feeds <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
             </div>
           </div>
 
@@ -512,7 +512,7 @@ function PublicLandingPage() {
               </div>
               <h3 className="text-lg font-bold text-white group-hover:text-emerald-300 transition-colors">Omnichannel Unified Inbox</h3>
               <p className="mt-2 text-sm text-slate-400 leading-relaxed">
-                Centralize messaging across Gmail, Meta WhatsApp Cloud API, and social accounts with Gemini AI reply suggestions.
+                Centralize messaging across Gmail, Meta WhatsApp Cloud API, and social accounts with AI consultative reply suggestions.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-slate-800 text-xs font-bold text-emerald-400 flex items-center gap-1">
@@ -542,13 +542,13 @@ function PublicLandingPage() {
               <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-6 group-hover:scale-110 group-hover:bg-amber-500/20 transition-all">
                 <TrendingUp className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-amber-300 transition-colors">PostgreSQL Business Analytics</h3>
+              <h3 className="text-lg font-bold text-white group-hover:text-amber-300 transition-colors">Predictive Deal & Revenue Analytics</h3>
               <p className="mt-2 text-sm text-slate-400 leading-relaxed">
-                Real-time conversion funnels (Lead $\to$ Qualified $\to$ Replied $\to$ Won) and service ROI computed directly via pure SQL queries.
+                Real-time conversion funnels (Lead $\to$ Qualified $\to$ Replied $\to$ Won) and service ROI calculated with zero external reporting latency.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-slate-800 text-xs font-bold text-amber-400 flex items-center gap-1">
-              Zero External DB Dependency <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+              Real-Time Performance <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
             </div>
           </div>
 
@@ -558,9 +558,9 @@ function PublicLandingPage() {
               <div className="h-12 w-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-6 group-hover:scale-110 group-hover:bg-rose-500/20 transition-all">
                 <ShieldCheck className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-rose-300 transition-colors">Military-Grade Security</h3>
+              <h3 className="text-lg font-bold text-white group-hover:text-rose-300 transition-colors">Bank-Grade Privacy & Security</h3>
               <p className="mt-2 text-sm text-slate-400 leading-relaxed">
-                Argon2id password hashing, AES-256 Fernet credential encryption at rest, rate-limited auth, and tenant-isolated data queries.
+                Zero-knowledge credential encryption at rest, rate-limited auth sessions, and tenant-isolated workspace boundaries.
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-slate-800 text-xs font-bold text-rose-400 flex items-center gap-1">
@@ -595,7 +595,7 @@ function PublicLandingPage() {
               <h3 className="text-lg font-bold text-white">1. Website Design & Dev</h3>
               <p className="text-xs text-sky-400 font-semibold mt-1">Average Deal: $3,000 - $8,000</p>
               <p className="mt-3 text-sm text-slate-400">
-                Next.js 14, React, Tailwind CSS platforms, custom SaaS dashboards, responsive landing pages, and Stripe integrations.
+                Custom web applications, responsive business landing pages, SaaS dashboards, and e-commerce integrations.
               </p>
             </div>
 
@@ -606,7 +606,7 @@ function PublicLandingPage() {
               <h3 className="text-lg font-bold text-white">2. Graphics & Brand Identity</h3>
               <p className="text-xs text-indigo-400 font-semibold mt-1">Average Deal: $1,500 - $4,000</p>
               <p className="mt-3 text-sm text-slate-400">
-                Complete brand guidelines, vector logos, Figma UI/UX design systems, 3D renders, social media templates, and banners.
+                Complete brand guidelines, visual identity design systems, vector logos, marketing banners, and UI design kits.
               </p>
             </div>
 
@@ -706,7 +706,7 @@ function PublicLandingPage() {
                     <Check className="h-4 w-4 text-sky-400" /> Manual & CSV lead import
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-sky-400" /> Basic PostgreSQL analytics
+                    <Check className="h-4 w-4 text-sky-400" /> Core Performance Analytics
                   </li>
                 </ul>
               </div>
@@ -738,7 +738,7 @@ function PublicLandingPage() {
                     <Check className="h-4 w-4 text-sky-400" /> Unlimited active leads & clients
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-sky-400" /> Gemini AI intent scoring & analysis
+                    <Check className="h-4 w-4 text-sky-400" /> AI intent scoring & analysis
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-sky-400" /> Unified Inbox (Gmail + WhatsApp)
@@ -781,7 +781,7 @@ function PublicLandingPage() {
                     <Check className="h-4 w-4 text-sky-400" /> Custom RSS & webhook lead sources
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-sky-400" /> Dedicated database connection pooling
+                    <Check className="h-4 w-4 text-sky-400" /> Dedicated Enterprise Cloud Cluster
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-sky-400" /> 24/7 SLA & priority onboarding
@@ -963,7 +963,7 @@ function AuthenticatedDashboard({ token, user }: { token: string | null; user: a
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-md">
               <ShieldCheck className="h-3.5 w-3.5 text-sky-200" />
-              Isolated PostgreSQL Environment Active
+              Private Dedicated Workspace Active
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-black tracking-tight">
               Welcome back, {displayName}!
@@ -994,14 +994,14 @@ function AuthenticatedDashboard({ token, user }: { token: string | null; user: a
         <div className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-white/10 blur-3xl pointer-events-none" />
       </div>
 
-      {/* PostgreSQL Dashboard Summary Statistics */}
+      {/* Dashboard Summary Statistics */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-sky-600" />
             Live Pipeline Performance
           </h2>
-          <span className="text-[11px] sm:text-xs font-semibold text-slate-400">PostgreSQL Aggregated</span>
+          <span className="text-[11px] sm:text-xs font-semibold text-slate-400">Real-time Analytics</span>
         </div>
 
         <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">

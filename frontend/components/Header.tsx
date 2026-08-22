@@ -119,7 +119,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/90 backdrop-blur-md px-4 sm:px-6 md:px-8">
+    <header className="fixed top-0 right-0 left-0 md:left-64 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 backdrop-blur-md px-4 sm:px-6 md:px-8 shadow-xs">
       {/* Left: Mobile Hamburger & Title */}
       <div className="flex items-center gap-3">
         <button

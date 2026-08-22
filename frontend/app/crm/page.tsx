@@ -154,7 +154,7 @@ export default function CRMPage() {
             CRM Lead Pipeline & Deal Flow
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Visual 9-stage sales pipeline with PostgreSQL state tracking and instant Client conversion.
+            Visual 9-stage sales pipeline with automated state tracking and instant Client conversion.
           </p>
         </div>
 
