@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { UIProvider } from "@/lib/ui-context";
 import AuthGuard from "@/components/AuthGuard";
+import FloatingChatbot from "@/components/FloatingChatbot";
 
 export const metadata: Metadata = {
   title: "Client Magnet - Global Client Discovery & CRM Platform",
@@ -28,7 +29,10 @@ export default function RootLayout({
       <body className="h-full antialiased font-sans text-slate-900 bg-slate-50 overflow-x-hidden">
         <AuthProvider>
           <UIProvider>
-            <AuthGuard>{children}</AuthGuard>
+            <AuthGuard>
+              {children}
+              <FloatingChatbot />
+            </AuthGuard>
           </UIProvider>
         </AuthProvider>
       </body>

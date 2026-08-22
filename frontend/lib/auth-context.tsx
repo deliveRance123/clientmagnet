@@ -8,6 +8,7 @@ import React, {
   useCallback,
 } from "react";
 import { useRouter } from "next/navigation";
+import { getApiBase, resilientFetch } from "./api-config";
 
 export interface User {
   id: string;
@@ -40,8 +41,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -50,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchCurrentUser = useCallback(async (jwtToken: string): Promise<User | null> => {
     try {
-      const res = await fetch(`${API_BASE}/auth/me`, {
+      const res = await resilientFetch("/auth/me", {
         headers: {
           Authorization: `Bearer ${jwtToken}`,
         },
@@ -67,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshSession = useCallback(async (): Promise<boolean> => {
     try {
-      const res = await fetch(`${API_BASE}/auth/refresh`, {
+      const res = await resilientFetch("/auth/refresh", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -91,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Lightning-fast initialization
+  // Fast initialization
   useEffect(() => {
     let isMounted = true;
 
@@ -118,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     setUser(freshUser);
                     localStorage.setItem("cm_user", JSON.stringify(freshUser));
                   } else {
-                    // Token expired, clear cache
+                    // Session expired
                     setUser(null);
                     setToken(null);
                     localStorage.removeItem("cm_access_token");
@@ -151,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
+      const res = await resilientFetch("/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -179,14 +178,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       return {
         success: false,
-        error: "Unable to connect to the server. Please try again later.",
+        error: "Unable to connect to the backend server. If running on Render Free tier, please wait 30-40s for the server to wake up and try again.",
       };
     }
   };
 
   const register = async (payload: RegisterPayload) => {
     try {
-      const res = await fetch(`${API_BASE}/auth/register`, {
+      const res = await resilientFetch("/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -216,14 +215,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       return {
         success: false,
-        error: "Unable to connect to the server. Please try again later.",
+        error: "Unable to connect to the backend server. Please try again in a moment.",
       };
     }
   };
 
   const logout = async () => {
     try {
-      await fetch(`${API_BASE}/auth/logout`, {
+      await resilientFetch("/auth/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -244,7 +243,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!token) return { success: false, error: "Not authenticated" };
 
     try {
-      const res = await fetch(`${API_BASE}/auth/me`, {
+      const res = await resilientFetch("/auth/me", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -303,7 +302,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;

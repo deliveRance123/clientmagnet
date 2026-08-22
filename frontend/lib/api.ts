@@ -66,7 +66,9 @@ import {
   UserBusinessProfile,
 } from "@/types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+import { getApiBase } from "./api-config";
+
+const API_BASE = typeof window !== "undefined" ? getApiBase() : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1");
 
 function getAuthHeaders(token: string) {
   return {
