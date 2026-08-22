@@ -1,0 +1,105 @@
+services:
+  # ---------------------------------------------------------------------------
+  # 1. Backend Web Service (FastAPI)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: client-magnet-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: "./render_build.sh"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2"
+    plan: standard
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: client-magnet-db
+          property: connectionString
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: BACKEND_CORS_ORIGINS
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: META_CLIENT_ID
+        sync: false
+      - key: META_CLIENT_SECRET
+        sync: false
+      - key: X_CLIENT_ID
+        sync: false
+      - key: X_CLIENT_SECRET
+        sync: false
+      - key: LINKEDIN_CLIENT_ID
+        sync: false
+      - key: LINKEDIN_CLIENT_SECRET
+        sync: false
+      - key: TIKTOK_CLIENT_KEY
+        sync: false
+      - key: TIKTOK_CLIENT_SECRET
+        sync: false
+      - key: WHATSAPP_API_URL
+        value: "https://graph.facebook.com/v20.0"
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: WHATSAPP_WEBHOOK_VERIFY_TOKEN
+        generateValue: true
+      - key: WHATSAPP_APP_SECRET
+        sync: false
+    healthCheckPath: /health
+
+  # ---------------------------------------------------------------------------
+  # 2. Frontend Web Service (Next.js)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: client-magnet-frontend
+    runtime: node
+    rootDir: frontend
+    buildCommand: "npm ci && npm run build"
+    startCommand: "npm start"
+    plan: standard
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+      - key: NODE_ENV
+        value: production
+
+  # ---------------------------------------------------------------------------
+  # 3. Background Worker Service (Task Scheduler & Cron)
+  # ---------------------------------------------------------------------------
+  - type: worker
+    name: client-magnet-worker
+    runtime: python
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python -m app.worker"
+    plan: standard
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: client-magnet-db
+          property: connectionString
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+
+# ---------------------------------------------------------------------------
+# 4. Managed PostgreSQL Database
+# ---------------------------------------------------------------------------
+databases:
+  - name: client-magnet-db
+    plan: standard
+    postgresMajorVersion: "16"
+    databaseName: client_magnet
+    user: client_magnet_user

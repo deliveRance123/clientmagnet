@@ -1,0 +1,312 @@
+"use client";
+
+import React, { useState, useMemo } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
+import {
+  Magnet,
+  Lock,
+  Mail,
+  User,
+  Building,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
+
+export default function RegisterPage() {
+  const [fullName, setFullName] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { register } = useAuth();
+  const router = useRouter();
+
+  // Password strength calculations
+  const passwordChecks = useMemo(() => {
+    return {
+      length: password.length >= 8,
+      upper: /[A-Z]/.test(password),
+      lower: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+    };
+  }, [password]);
+
+  const strengthScore = useMemo(() => {
+    let score = 0;
+    if (passwordChecks.length) score++;
+    if (passwordChecks.upper) score++;
+    if (passwordChecks.lower) score++;
+    if (passwordChecks.number) score++;
+    return score;
+  }, [passwordChecks]);
+
+  const strengthLabel = useMemo(() => {
+    if (password.length === 0) return "";
+    if (strengthScore <= 2) return "Weak";
+    if (strengthScore === 3) return "Moderate";
+    return "Strong";
+  }, [strengthScore, password]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match. Please verify.");
+      return;
+    }
+
+    if (strengthScore < 4) {
+      setError("Please ensure your password meets all complexity requirements.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const res = await register({
+      email,
+      password,
+      full_name: fullName.trim() || undefined,
+      company_name: companyName.trim() || undefined,
+    });
+
+    setIsSubmitting(false);
+
+    if (res.success) {
+      router.push("/");
+    } else {
+      setError(res.error || "Registration failed. Please check your details.");
+    }
+  };
+
+  return (
+    <div className="relative flex min-h-screen items-center justify-center bg-slate-950 px-4 py-12 sm:px-6 lg:px-8 overflow-hidden">
+      {/* Dynamic Background Glows */}
+      <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-sky-500/15 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none" />
+
+      <div className="relative w-full max-w-lg space-y-8">
+        {/* Brand Header */}
+        <div className="text-center">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 shadow-lg shadow-sky-500/25">
+            <Magnet className="h-7 w-7 text-white" />
+          </div>
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-white">
+            Create Your Account
+          </h2>
+          <p className="mt-2 text-sm text-slate-400">
+            Start acquiring high-intent clients with dedicated multi-user isolation
+          </p>
+        </div>
+
+        {/* Auth Card */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl backdrop-blur-xl">
+          {error && (
+            <div className="mb-6 flex items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-sm text-red-400">
+              <AlertCircle className="h-5 w-5 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Name and Company Row */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                  Full Name
+                </label>
+                <div className="relative mt-1.5">
+                  <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                    <User className="h-4 w-4" />
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Jane Doe"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800/80 py-2.5 pl-10 pr-3 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                  Company Name <span className="text-slate-500 font-normal">(Opt)</span>
+                </label>
+                <div className="relative mt-1.5">
+                  <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                    <Building className="h-4 w-4" />
+                  </span>
+                  <input
+                    type="text"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="Acme Growth"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800/80 py-2.5 pl-10 pr-3 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Email Field */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                Work Email
+              </label>
+              <div className="relative mt-1.5">
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                  <Mail className="h-4 w-4" />
+                </span>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="jane@company.com"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-800/80 py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                />
+              </div>
+            </div>
+
+            {/* Password & Confirm Row */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                  Password
+                </label>
+                <div className="relative mt-1.5">
+                  <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                    <Lock className="h-4 w-4" />
+                  </span>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800/80 py-2.5 pl-10 pr-9 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-200"
+                  >
+                    {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                  Confirm Password
+                </label>
+                <div className="relative mt-1.5">
+                  <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                    <Lock className="h-4 w-4" />
+                  </span>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800/80 py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Password Strength Meter */}
+            {password.length > 0 && (
+              <div className="rounded-lg bg-slate-800/50 p-3 border border-slate-700/50 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400">Password Strength:</span>
+                  <span
+                    className={`font-semibold ${
+                      strengthScore <= 2
+                        ? "text-red-400"
+                        : strengthScore === 3
+                        ? "text-amber-400"
+                        : "text-emerald-400"
+                    }`}
+                  >
+                    {strengthLabel}
+                  </span>
+                </div>
+                {/* Progress bar */}
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[1, 2, 3, 4].map((step) => (
+                    <div
+                      key={step}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        step <= strengthScore
+                          ? strengthScore <= 2
+                            ? "bg-red-500"
+                            : strengthScore === 3
+                            ? "bg-amber-500"
+                            : "bg-emerald-500"
+                          : "bg-slate-700"
+                      }`}
+                    />
+                  ))}
+                </div>
+                {/* Check list */}
+                <div className="grid grid-cols-2 gap-1 pt-1 text-[11px] text-slate-400">
+                  <div className={`flex items-center gap-1 ${passwordChecks.length ? "text-emerald-400" : ""}`}>
+                    <CheckCircle2 className="h-3 w-3" /> At least 8 characters
+                  </div>
+                  <div className={`flex items-center gap-1 ${passwordChecks.upper ? "text-emerald-400" : ""}`}>
+                    <CheckCircle2 className="h-3 w-3" /> Uppercase letter
+                  </div>
+                  <div className={`flex items-center gap-1 ${passwordChecks.lower ? "text-emerald-400" : ""}`}>
+                    <CheckCircle2 className="h-3 w-3" /> Lowercase letter
+                  </div>
+                  <div className={`flex items-center gap-1 ${passwordChecks.number ? "text-emerald-400" : ""}`}>
+                    <CheckCircle2 className="h-3 w-3" /> Number included
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition duration-200 hover:from-sky-400 hover:to-indigo-500 active:scale-[0.99] disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+                <>
+                  Complete Registration
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Footer Link */}
+        <p className="text-center text-sm text-slate-400">
+          Already registered?{" "}
+          <Link
+            href="/login"
+            className="font-semibold text-sky-400 hover:text-sky-300 underline underline-offset-4"
+          >
+            Sign in
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
