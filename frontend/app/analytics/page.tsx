@@ -54,7 +54,7 @@ export default function AnalyticsPage() {
             CRM Business Analytics & Conversion Funnel
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Real-time business performance, conversion rates, and revenue channel breakdown powered directly by PostgreSQL.
+            Real-time business performance, conversion rates, and revenue channel breakdown powered directly by real-time intelligence.
           </p>
         </div>
 

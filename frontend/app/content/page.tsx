@@ -252,7 +252,7 @@ export default function ContentPage() {
         selectedSchedulePlatforms,
         new Date(scheduleDateTime).toISOString()
       );
-      setSuccessMsg("Post scheduled successfully in PostgreSQL queue!");
+      setSuccessMsg("Post scheduled successfully in automation queue!");
       setShowScheduleModal(false);
       setSelectedContentForSchedule(null);
       await loadData();
@@ -623,7 +623,7 @@ export default function ContentPage() {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
               <CalendarIcon className="h-4 w-4 text-indigo-600" />
-              PostgreSQL Scheduled Execution Queue
+              Automated Scheduled Execution Queue
             </h3>
           </div>
 
