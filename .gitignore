@@ -53,6 +53,7 @@ yarn-error.log*
 # Next.js build output
 .next/
 out/
+*.tsbuildinfo
 
 # Environment files
 .env

@@ -1,6 +1,6 @@
 /**
  * Intelligent API Base URL resolver with automatic Render detection,
- * IPv4 fallback, and resilience against connection failures.
+ * runtime overrides, IPv4 fallback, and resilience against connection failures.
  */
 
 export function getApiBase(): string {
@@ -15,11 +15,26 @@ export function getApiBase(): string {
 
   // 2. Client-side dynamic host inspection
   if (typeof window !== "undefined") {
+    // Check for runtime config override
+    const customApiUrl = localStorage.getItem("cm_backend_url") || (window as any).__API_URL__;
+    if (customApiUrl) {
+      let url = String(customApiUrl).trim();
+      if (!url.endsWith("/api/v1")) {
+        url = url.replace(/\/+$/, "") + "/api/v1";
+      }
+      return url;
+    }
+
     const hostname = window.location.hostname;
 
     // If deployed on Render
     if (hostname.includes("onrender.com")) {
-      return "https://clientmagnet-ruxv.onrender.com/api/v1";
+      // If frontend is named client-magnet-frontend or clientmagnet-1, infer backend or default
+      if (hostname.startsWith("clientmagnet-1")) {
+        // Paired backend service
+        return "https://client-magnet-backend.onrender.com/api/v1";
+      }
+      return "https://client-magnet-backend.onrender.com/api/v1";
     }
 
     // Direct IPv4 loopback

@@ -300,3 +300,71 @@ async def test_logout_revokes_token(
         json={"refresh_token": refresh_token},
     )
     assert failed_refresh.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_google_auth_url(async_client: AsyncClient):
+    """Test getting Google OAuth authorization URL."""
+    response = await async_client.get("/api/v1/auth/google/url")
+    assert response.status_code == 200
+    data = response.json()
+    assert "authorization_url" in data
+    assert "state" in data
+    assert len(data["authorization_url"]) > 0
+
+
+@pytest.mark.asyncio
+async def test_google_auth_new_user_registration(
+    async_client: AsyncClient, db_session: AsyncSession
+):
+    """Test automatic new user registration via Google OAuth."""
+    payload = {
+        "code": "mock_google_auth_code_999",
+        "email": "google.newuser@example.com",
+        "name": "New Google User",
+    }
+    response = await async_client.post("/api/v1/auth/google", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+    assert "refresh_token" in data
+    assert data["user"]["email"] == "google.newuser@example.com"
+    assert data["user"]["full_name"] == "New Google User"
+    assert data["user"]["is_active"] is True
+    assert data["user"]["is_verified"] is True
+
+    # Verify user saved in DB
+    db_res = await db_session.execute(
+        select(User).where(User.email == "google.newuser@example.com")
+    )
+    db_user = db_res.scalar_one_or_none()
+    assert db_user is not None
+    assert db_user.is_verified is True
+
+
+@pytest.mark.asyncio
+async def test_google_auth_existing_user_login(
+    async_client: AsyncClient, db_session: AsyncSession
+):
+    """Test signing in an existing user with Google OAuth."""
+    # Create existing user
+    await async_client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "existing.google@example.com",
+            "password": "Password123!",
+            "full_name": "Original Name",
+        },
+    )
+
+    # Sign in with Google with same email
+    payload = {
+        "code": "mock_google_auth_code_888",
+        "email": "existing.google@example.com",
+        "name": "Original Name",
+    }
+    response = await async_client.post("/api/v1/auth/google", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["user"]["email"] == "existing.google@example.com"
+    assert "access_token" in data

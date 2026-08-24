@@ -89,12 +89,15 @@ class Settings(BaseSettings):
     FRONTEND_SOCIAL_REDIRECT_URL: str = "http://localhost:3000/settings/social"
     USE_MOCK_SOCIAL_OAUTH: bool = True
 
-    # Google / Gmail OAuth Settings
+    # Google OAuth / User Authentication Settings
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_AUTH_REDIRECT_URI: str = "http://localhost:3000/auth/callback"
     GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/email/callback"
     FRONTEND_EMAIL_REDIRECT_URL: str = "http://localhost:3000/email"
+    FRONTEND_URL: str = "http://localhost:3000"
     USE_MOCK_EMAIL: bool = True
+    USE_MOCK_GOOGLE_AUTH: bool = True
 
     # WhatsApp Business Cloud API Settings
     WHATSAPP_API_URL: str = "https://graph.facebook.com/v19.0"

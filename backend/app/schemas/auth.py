@@ -30,3 +30,17 @@ class RefreshTokenRequest(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+
+class GoogleAuthUrlResponse(BaseModel):
+    authorization_url: str
+    state: str
+
+
+class GoogleAuthRequest(BaseModel):
+    code: Optional[str] = None
+    state: Optional[str] = None
+    redirect_uri: Optional[str] = None
+    id_token: Optional[str] = None
+    email: Optional[EmailStr] = None
+    name: Optional[str] = None

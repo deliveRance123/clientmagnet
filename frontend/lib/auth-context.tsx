@@ -34,6 +34,9 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (payload: RegisterPayload) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: (payload: { code?: string; state?: string; redirect_uri?: string; id_token?: string }) => Promise<{ success: boolean; error?: string }>;
+  initiateGoogleLogin: (customRedirectUri?: string) => Promise<void>;
+  setDirectAuth: (token: string, user: User) => void;
   logout: () => Promise<void>;
   updateProfile: (data: { full_name?: string; company_name?: string }) => Promise<{ success: boolean; error?: string }>;
   refreshUser: () => Promise<void>;
@@ -220,6 +223,95 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const initiateGoogleLogin = async (customRedirectUri?: string) => {
+    try {
+      const redirectUri =
+        customRedirectUri ||
+        (typeof window !== "undefined"
+          ? `${window.location.origin}/auth/callback`
+          : "http://localhost:3000/auth/callback");
+
+      const res = await resilientFetch(
+        `/auth/google/url?redirect_uri=${encodeURIComponent(redirectUri)}`
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.authorization_url && typeof window !== "undefined") {
+          window.location.href = data.authorization_url;
+        }
+      } else {
+        // Direct mock fallback for local dev
+        if (typeof window !== "undefined") {
+          window.location.href = `${redirectUri}?code=mock_google_auth_code_999`;
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to initiate Google OAuth, falling back to callback:", err);
+      if (typeof window !== "undefined") {
+        window.location.href = `${window.location.origin}/auth/callback?code=mock_google_auth_code_999`;
+      }
+    }
+  };
+
+  const loginWithGoogle = async (payload: {
+    code?: string;
+    state?: string;
+    redirect_uri?: string;
+    id_token?: string;
+  }) => {
+    try {
+      const redirectUri =
+        payload.redirect_uri ||
+        (typeof window !== "undefined"
+          ? `${window.location.origin}/auth/callback`
+          : "http://localhost:3000/auth/callback");
+
+      const res = await resilientFetch("/auth/google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          ...payload,
+          redirect_uri: redirectUri,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return {
+          success: false,
+          error: data.detail || "Google authentication failed. Please try again.",
+        };
+      }
+
+      setToken(data.access_token);
+      setUser(data.user);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cm_access_token", data.access_token);
+        localStorage.setItem("cm_user", JSON.stringify(data.user));
+      }
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: "Unable to connect to backend server during Google authentication.",
+      };
+    }
+  };
+
+  const setDirectAuth = (jwtToken: string, authUser: User) => {
+    setToken(jwtToken);
+    setUser(authUser);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("cm_access_token", jwtToken);
+      localStorage.setItem("cm_user", JSON.stringify(authUser));
+    }
+  };
+
   const logout = async () => {
     try {
       await resilientFetch("/auth/logout", {
@@ -290,6 +382,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         login,
         register,
+        loginWithGoogle,
+        initiateGoogleLogin,
+        setDirectAuth,
         logout,
         updateProfile,
         refreshUser,

@@ -1,7 +1,10 @@
 import logging
+import secrets
+import urllib.parse
 from datetime import datetime, timezone
 from typing import Optional, Tuple
 
+import httpx
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -265,6 +268,201 @@ class AuthService:
         await db.refresh(user)
         logger.info(f"User profile updated: user_id={user.id}")
         return user
+
+    @staticmethod
+    def get_google_auth_url(redirect_uri: Optional[str] = None) -> Tuple[str, str]:
+        """
+        Generates Google OAuth 2.0 authorization URL for user login and signup.
+        Returns: (authorization_url, state)
+        """
+        state = secrets.token_urlsafe(32)
+        target_redirect = redirect_uri or settings.GOOGLE_AUTH_REDIRECT_URI
+
+        if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET or settings.USE_MOCK_GOOGLE_AUTH:
+            # Fallback/mock development authorization URL
+            mock_url = f"{target_redirect}?code=mock_google_auth_code_{secrets.token_hex(6)}&state={state}"
+            return mock_url, state
+
+        scopes = "openid email profile"
+        encoded_scopes = urllib.parse.quote(scopes)
+        encoded_redirect = urllib.parse.quote(target_redirect, safe="")
+        auth_url = (
+            f"https://accounts.google.com/o/oauth2/v2/auth?"
+            f"client_id={settings.GOOGLE_CLIENT_ID}&"
+            f"redirect_uri={encoded_redirect}&"
+            f"response_type=code&"
+            f"scope={encoded_scopes}&"
+            f"access_type=offline&"
+            f"prompt=consent&"
+            f"state={state}"
+        )
+        return auth_url, state
+
+    @staticmethod
+    async def authenticate_or_register_google(
+        db: AsyncSession,
+        code: Optional[str] = None,
+        redirect_uri: Optional[str] = None,
+        id_token_str: Optional[str] = None,
+        email_hint: Optional[str] = None,
+        name_hint: Optional[str] = None,
+    ) -> Tuple[User, str, str, int]:
+        """
+        Authenticates an existing user or automatically registers a new user via Google OAuth 2.0.
+        Returns: (user, access_token, raw_refresh_token, expires_in_seconds)
+        """
+        target_redirect = redirect_uri or settings.GOOGLE_AUTH_REDIRECT_URI
+        google_email = None
+        google_name = None
+
+        # Check if code is mock or in mock mode without live credentials
+        is_mock = (
+            (code and code.startswith("mock_google_auth_code_"))
+            or (not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET)
+        )
+
+        if is_mock:
+            google_email = (email_hint or "google.user@example.com").strip().lower()
+            google_name = name_hint or "Google User"
+            logger.info(f"Using Google Auth mock flow for email: {google_email}")
+        else:
+            if not code and not id_token_str:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Either authorization code or id_token is required for Google Sign-In.",
+                )
+
+            if code:
+                # Exchange code for access & id tokens
+                token_url = "https://oauth2.googleapis.com/token"
+                token_payload = {
+                    "code": code,
+                    "client_id": settings.GOOGLE_CLIENT_ID,
+                    "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                    "redirect_uri": target_redirect,
+                    "grant_type": "authorization_code",
+                }
+                try:
+                    async with httpx.AsyncClient(timeout=15.0) as client:
+                        token_resp = await client.post(token_url, data=token_payload)
+                        if token_resp.status_code != 200:
+                            logger.error(f"Google token exchange failed: {token_resp.text}")
+                            raise HTTPException(
+                                status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Failed to exchange authorization code with Google.",
+                            )
+                        token_data = token_resp.json()
+                        google_access_token = token_data.get("access_token")
+
+                    # Fetch user info using access token
+                    async with httpx.AsyncClient(timeout=15.0) as client:
+                        userinfo_resp = await client.get(
+                            "https://www.googleapis.com/oauth2/v2/userinfo",
+                            headers={"Authorization": f"Bearer {google_access_token}"},
+                        )
+                        if userinfo_resp.status_code != 200:
+                            raise HTTPException(
+                                status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Failed to retrieve Google user profile.",
+                            )
+                        profile_data = userinfo_resp.json()
+                        google_email = profile_data.get("email", "").strip().lower()
+                        google_name = profile_data.get("name")
+                except HTTPException:
+                    raise
+                except Exception as e:
+                    logger.error(f"Error communicating with Google OAuth API: {e}", exc_info=True)
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail="An unexpected error occurred during Google authentication.",
+                    )
+            elif id_token_str:
+                try:
+                    async with httpx.AsyncClient(timeout=15.0) as client:
+                        tokeninfo_resp = await client.get(
+                            f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token_str}"
+                        )
+                        if tokeninfo_resp.status_code != 200:
+                            raise HTTPException(
+                                status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Invalid Google ID token.",
+                            )
+                        tokeninfo_data = tokeninfo_resp.json()
+                        google_email = tokeninfo_data.get("email", "").strip().lower()
+                        google_name = tokeninfo_data.get("name")
+                except HTTPException:
+                    raise
+                except Exception as e:
+                    logger.error(f"Error verifying Google ID token: {e}", exc_info=True)
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail="An unexpected error occurred while verifying Google credentials.",
+                    )
+
+        if not google_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Google account did not return a valid email address.",
+            )
+
+        # 1. Query existing user
+        query = select(User).where(func.lower(User.email) == google_email)
+        result = await db.execute(query)
+        user = result.scalar_one_or_none()
+
+        if user:
+            # Existing user: update verification & name if missing
+            if not user.is_active:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Account is currently inactive. Please contact support.",
+                )
+            if not user.is_verified:
+                user.is_verified = True
+            if not user.full_name and google_name:
+                user.full_name = google_name
+            user.updated_at = datetime.now(timezone.utc)
+            await db.commit()
+            await db.refresh(user)
+            logger.info(f"Existing user signed in via Google: user_id={user.id}")
+        else:
+            # New user: auto-register with secure random password hash
+            random_pw = f"GoogleAuth_{secrets.token_urlsafe(32)}_A1!"
+            hashed_pw = hash_password(random_pw)
+
+            new_user = User(
+                email=google_email,
+                hashed_password=hashed_pw,
+                full_name=google_name,
+                company_name=None,
+                is_active=True,
+                is_verified=True,
+            )
+            db.add(new_user)
+            await db.flush()
+            user = new_user
+            await db.commit()
+            await db.refresh(user)
+            logger.info(f"New user registered via Google: user_id={user.id}")
+
+        # 2. Issue JWT tokens
+        access_token = create_access_token(subject=user.id)
+        raw_refresh_token, token_db_hash, expires_at = create_refresh_token(
+            subject=user.id
+        )
+
+        token_record = RefreshToken(
+            token_hash=token_db_hash,
+            user_id=user.id,
+            expires_at=expires_at,
+            is_revoked=False,
+        )
+        db.add(token_record)
+        await db.commit()
+        await db.refresh(user)
+
+        expires_in = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        return user, access_token, raw_refresh_token, expires_in
 
 
 auth_service = AuthService()

@@ -6,6 +6,8 @@ from app.api.deps import get_current_active_user, get_db_session
 from app.core.config import settings
 from app.models.user import User
 from app.schemas.auth import (
+    GoogleAuthRequest,
+    GoogleAuthUrlResponse,
     MessageResponse,
     RefreshTokenRequest,
     TokenResponse,
@@ -215,3 +217,107 @@ async def update_me(
         db=db, user=current_user, update_in=update_in
     )
     return UserOut.model_validate(updated_user)
+
+
+# ---------------------------------------------------------------------------
+# Google OAuth 2.0 Single Sign-On (Login & Registration)
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/google/url",
+    response_model=GoogleAuthUrlResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get Google OAuth 2.0 authorization URL for user login and signup",
+)
+async def get_google_auth_url(
+    redirect_uri: Optional[str] = None,
+):
+    """
+    Returns the official Google OAuth authorization URL.
+    Can be used by the frontend to redirect or open popup for Google Sign-In.
+    """
+    auth_url, state = auth_service.get_google_auth_url(redirect_uri=redirect_uri)
+    return GoogleAuthUrlResponse(authorization_url=auth_url, state=state)
+
+
+@router.post(
+    "/google",
+    response_model=TokenResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Authenticate or register user with Google OAuth credentials",
+)
+async def google_auth(
+    payload: GoogleAuthRequest,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db_session),
+):
+    """
+    Exchanges Google OAuth code or verifies ID token.
+    If the user does not exist, an account is automatically created and verified.
+    If the user already exists, they are authenticated immediately.
+    Returns JWT access & refresh tokens.
+    """
+    client_ip = request.client.host if request.client else "unknown"
+    user, access_token, raw_refresh_token, expires_in = (
+        await auth_service.authenticate_or_register_google(
+            db=db,
+            code=payload.code,
+            redirect_uri=payload.redirect_uri,
+            id_token_str=payload.id_token,
+            email_hint=payload.email,
+            name_hint=payload.name,
+        )
+    )
+    _set_auth_cookies(response, raw_refresh_token, access_token)
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=raw_refresh_token,
+        token_type="bearer",
+        expires_in=expires_in,
+        user=UserOut.model_validate(user),
+    )
+
+
+@router.get(
+    "/google/callback",
+    summary="Direct browser redirect callback from Google OAuth dialog",
+)
+async def google_oauth_callback(
+    code: Optional[str] = None,
+    state: Optional[str] = None,
+    error: Optional[str] = None,
+    error_description: Optional[str] = None,
+    response: Response = None,
+    db: AsyncSession = Depends(get_db_session),
+):
+    """
+    Handles standard browser redirect callback from Google.
+    Logs in or registers user and redirects to frontend application.
+    """
+    frontend_target = settings.FRONTEND_URL.rstrip("/")
+    if error:
+        logger.warning(f"Google Auth returned error: {error} ({error_description})")
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url=f"{frontend_target}/login?error={error}")
+
+    if not code:
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url=f"{frontend_target}/login?error=missing_code")
+
+    try:
+        user, access_token, raw_refresh_token, _ = (
+            await auth_service.authenticate_or_register_google(
+                db=db,
+                code=code,
+                redirect_uri=f"{settings.FRONTEND_URL.rstrip('/')}/auth/callback",
+            )
+        )
+        from fastapi.responses import RedirectResponse
+        res = RedirectResponse(url=f"{frontend_target}/auth/callback?token={access_token}&refresh={raw_refresh_token}")
+        _set_auth_cookies(res, raw_refresh_token, access_token)
+        return res
+    except Exception as e:
+        logger.error(f"Error in Google OAuth browser callback: {e}", exc_info=True)
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url=f"{frontend_target}/login?error=auth_failed")
