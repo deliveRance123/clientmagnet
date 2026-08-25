@@ -66,7 +66,15 @@ import {
   UserBusinessProfile,
 } from "@/types";
 
-import { getApiBase } from "./api-config";
+import { getApiBase, resilientFetch } from "./api-config";
+
+async function apiFetch(input: string, init?: RequestInit): Promise<Response> {
+  let cleanEndpoint = input;
+  if (cleanEndpoint.includes("/api/v1")) {
+    cleanEndpoint = cleanEndpoint.substring(cleanEndpoint.indexOf("/api/v1") + 7);
+  }
+  return await resilientFetch(cleanEndpoint, init);
+}
 
 const API_BASE = typeof window !== "undefined" ? getApiBase() : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1");
 
@@ -80,19 +88,19 @@ function getAuthHeaders(token: string) {
 // Services API
 export async function getServices(token: string, activeOnly = false): Promise<Service[]> {
   const url = activeOnly ? `${API_BASE}/services/?active_only=true` : `${API_BASE}/services/`;
-  const res = await fetch(url, { headers: getAuthHeaders(token) });
+  const res = await apiFetch(url, { headers: getAuthHeaders(token) });
   if (!res.ok) throw new Error("Failed to fetch services");
   return res.json();
 }
 
 export async function getServiceById(token: string, id: string): Promise<Service> {
-  const res = await fetch(`${API_BASE}/services/${id}`, { headers: getAuthHeaders(token) });
+  const res = await apiFetch(`${API_BASE}/services/${id}`, { headers: getAuthHeaders(token) });
   if (!res.ok) throw new Error("Failed to fetch service details");
   return res.json();
 }
 
 export async function createService(token: string, data: ServiceCreate): Promise<Service> {
-  const res = await fetch(`${API_BASE}/services/`, {
+  const res = await apiFetch(`${API_BASE}/services/`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -105,7 +113,7 @@ export async function createService(token: string, data: ServiceCreate): Promise
 }
 
 export async function updateService(token: string, id: string, data: ServiceUpdate): Promise<Service> {
-  const res = await fetch(`${API_BASE}/services/${id}`, {
+  const res = await apiFetch(`${API_BASE}/services/${id}`, {
     method: "PATCH",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -118,7 +126,7 @@ export async function updateService(token: string, id: string, data: ServiceUpda
 }
 
 export async function toggleServiceActive(token: string, id: string): Promise<Service> {
-  const res = await fetch(`${API_BASE}/services/${id}/toggle`, {
+  const res = await apiFetch(`${API_BASE}/services/${id}/toggle`, {
     method: "PATCH",
     headers: getAuthHeaders(token),
   });
@@ -127,7 +135,7 @@ export async function toggleServiceActive(token: string, id: string): Promise<Se
 }
 
 export async function deleteService(token: string, id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/services/${id}`, {
+  const res = await apiFetch(`${API_BASE}/services/${id}`, {
     method: "DELETE",
     headers: getAuthHeaders(token),
   });
@@ -154,19 +162,19 @@ export async function getLeads(token: string, params: LeadQueryParams = {}): Pro
   if (params.sort_dir) query.append("sort_dir", params.sort_dir);
 
   const url = `${API_BASE}/leads/${query.toString() ? `?${query.toString()}` : ""}`;
-  const res = await fetch(url, { headers: getAuthHeaders(token) });
+  const res = await apiFetch(url, { headers: getAuthHeaders(token) });
   if (!res.ok) throw new Error("Failed to fetch leads");
   return res.json();
 }
 
 export async function getLeadById(token: string, id: string): Promise<Lead> {
-  const res = await fetch(`${API_BASE}/leads/${id}`, { headers: getAuthHeaders(token) });
+  const res = await apiFetch(`${API_BASE}/leads/${id}`, { headers: getAuthHeaders(token) });
   if (!res.ok) throw new Error("Failed to fetch lead details");
   return res.json();
 }
 
 export async function createLead(token: string, data: LeadCreate): Promise<Lead> {
-  const res = await fetch(`${API_BASE}/leads/`, {
+  const res = await apiFetch(`${API_BASE}/leads/`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -179,7 +187,7 @@ export async function createLead(token: string, data: LeadCreate): Promise<Lead>
 }
 
 export async function updateLead(token: string, id: string, data: LeadUpdate): Promise<Lead> {
-  const res = await fetch(`${API_BASE}/leads/${id}`, {
+  const res = await apiFetch(`${API_BASE}/leads/${id}`, {
     method: "PATCH",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -192,7 +200,7 @@ export async function updateLead(token: string, id: string, data: LeadUpdate): P
 }
 
 export async function deleteLead(token: string, id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/leads/${id}`, {
+  const res = await apiFetch(`${API_BASE}/leads/${id}`, {
     method: "DELETE",
     headers: getAuthHeaders(token),
   });
@@ -200,7 +208,7 @@ export async function deleteLead(token: string, id: string): Promise<void> {
 }
 
 export async function getLeadStatsSummary(token: string): Promise<LeadStatsSummary> {
-  const res = await fetch(`${API_BASE}/leads/stats/summary`, { headers: getAuthHeaders(token) });
+  const res = await apiFetch(`${API_BASE}/leads/stats/summary`, { headers: getAuthHeaders(token) });
   if (!res.ok) throw new Error("Failed to fetch lead stats");
   return res.json();
 }
@@ -213,7 +221,7 @@ export async function analyzeLead(
   token: string,
   data: LeadAnalysisRequest
 ): Promise<LeadAnalysisResponse> {
-  const res = await fetch(`${API_BASE}/ai/analyze-lead`, {
+  const res = await apiFetch(`${API_BASE}/ai/analyze-lead`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -229,7 +237,7 @@ export async function matchService(
   token: string,
   data: ServiceMatchRequest
 ): Promise<ServiceMatchResponse> {
-  const res = await fetch(`${API_BASE}/ai/match-service`, {
+  const res = await apiFetch(`${API_BASE}/ai/match-service`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -245,7 +253,7 @@ export async function scoreIntent(
   token: string,
   data: IntentScoreRequest
 ): Promise<IntentScoreResponse> {
-  const res = await fetch(`${API_BASE}/ai/score-intent`, {
+  const res = await apiFetch(`${API_BASE}/ai/score-intent`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -261,7 +269,7 @@ export async function generateCaption(
   token: string,
   data: CaptionGenerateRequest
 ): Promise<CaptionGenerateResponse> {
-  const res = await fetch(`${API_BASE}/ai/generate-caption`, {
+  const res = await apiFetch(`${API_BASE}/ai/generate-caption`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -277,7 +285,7 @@ export async function generateEmailDraft(
   token: string,
   data: EmailDraftRequest
 ): Promise<EmailDraftResponse> {
-  const res = await fetch(`${API_BASE}/ai/generate-email`, {
+  const res = await apiFetch(`${API_BASE}/ai/generate-email`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -293,7 +301,7 @@ export async function suggestReply(
   token: string,
   data: ReplySuggestionRequest
 ): Promise<ReplySuggestionResponse> {
-  const res = await fetch(`${API_BASE}/ai/suggest-reply`, {
+  const res = await apiFetch(`${API_BASE}/ai/suggest-reply`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -309,7 +317,7 @@ export async function summarizeConversation(
   token: string,
   data: ConversationSummaryRequest
 ): Promise<ConversationSummaryResponse> {
-  const res = await fetch(`${API_BASE}/ai/summarize-conversation`, {
+  const res = await apiFetch(`${API_BASE}/ai/summarize-conversation`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -329,7 +337,7 @@ export async function runLeadDiscovery(
   token: string,
   data: DiscoveryRunRequest = {}
 ): Promise<DiscoveryRun[]> {
-  const res = await fetch(`${API_BASE}/discovery/run`, {
+  const res = await apiFetch(`${API_BASE}/discovery/run`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -342,7 +350,7 @@ export async function runLeadDiscovery(
 }
 
 export async function getDiscoverySources(token: string): Promise<DiscoverySource[]> {
-  const res = await fetch(`${API_BASE}/discovery/sources`, {
+  const res = await apiFetch(`${API_BASE}/discovery/sources`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -357,7 +365,7 @@ export async function createDiscoverySource(
   token: string,
   data: DiscoverySourceCreate
 ): Promise<DiscoverySource> {
-  const res = await fetch(`${API_BASE}/discovery/sources`, {
+  const res = await apiFetch(`${API_BASE}/discovery/sources`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -374,7 +382,7 @@ export async function updateDiscoverySource(
   sourceId: string,
   data: DiscoverySourceUpdate
 ): Promise<DiscoverySource> {
-  const res = await fetch(`${API_BASE}/discovery/sources/${sourceId}`, {
+  const res = await apiFetch(`${API_BASE}/discovery/sources/${sourceId}`, {
     method: "PATCH",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -390,7 +398,7 @@ export async function deleteDiscoverySource(
   token: string,
   sourceId: string
 ): Promise<void> {
-  const res = await fetch(`${API_BASE}/discovery/sources/${sourceId}`, {
+  const res = await apiFetch(`${API_BASE}/discovery/sources/${sourceId}`, {
     method: "DELETE",
     headers: getAuthHeaders(token),
   });
@@ -401,7 +409,7 @@ export async function deleteDiscoverySource(
 }
 
 export async function getDiscoveryRuns(token: string): Promise<DiscoveryRun[]> {
-  const res = await fetch(`${API_BASE}/discovery/runs`, {
+  const res = await apiFetch(`${API_BASE}/discovery/runs`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -416,7 +424,7 @@ export async function importManualLead(
   token: string,
   data: ManualLeadImportRequest
 ): Promise<Lead> {
-  const res = await fetch(`${API_BASE}/discovery/import`, {
+  const res = await apiFetch(`${API_BASE}/discovery/import`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -435,7 +443,7 @@ export async function importCSVLeads(
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${API_BASE}/discovery/import/csv`, {
+  const res = await apiFetch(`${API_BASE}/discovery/import/csv`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -454,7 +462,7 @@ export async function importCSVLeads(
 // ---------------------------------------------------------------------------
 
 export async function getSocialAccounts(token: string): Promise<SocialAccountConnection[]> {
-  const res = await fetch(`${API_BASE}/social/accounts`, {
+  const res = await apiFetch(`${API_BASE}/social/accounts`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -471,7 +479,7 @@ export async function initiateSocialConnect(
   redirectUri?: string
 ): Promise<OAuthInitiateResponse> {
   const query = redirectUri ? `?redirect_uri=${encodeURIComponent(redirectUri)}` : "";
-  const res = await fetch(`${API_BASE}/social/connect/${platform.toLowerCase()}${query}`, {
+  const res = await apiFetch(`${API_BASE}/social/connect/${platform.toLowerCase()}${query}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -488,7 +496,7 @@ export async function handleProgrammaticOAuthCallback(
   code: string,
   state: string
 ): Promise<SocialAccountConnection> {
-  const res = await fetch(`${API_BASE}/social/callback/${platform.toLowerCase()}`, {
+  const res = await apiFetch(`${API_BASE}/social/callback/${platform.toLowerCase()}`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify({ code, state }),
@@ -504,7 +512,7 @@ export async function disconnectSocialAccount(
   token: string,
   accountId: string
 ): Promise<SocialDisconnectResponse> {
-  const res = await fetch(`${API_BASE}/social/accounts/${accountId}/disconnect`, {
+  const res = await apiFetch(`${API_BASE}/social/accounts/${accountId}/disconnect`, {
     method: "POST",
     headers: getAuthHeaders(token),
   });
@@ -519,7 +527,7 @@ export async function refreshSocialAccountToken(
   token: string,
   accountId: string
 ): Promise<SocialAccountConnection> {
-  const res = await fetch(`${API_BASE}/social/accounts/${accountId}/refresh`, {
+  const res = await apiFetch(`${API_BASE}/social/accounts/${accountId}/refresh`, {
     method: "POST",
     headers: getAuthHeaders(token),
   });
@@ -535,7 +543,7 @@ export async function refreshSocialAccountToken(
 // ---------------------------------------------------------------------------
 
 export async function getEmailAccounts(token: string): Promise<EmailAccountConnection[]> {
-  const res = await fetch(`${API_BASE}/email/accounts`, {
+  const res = await apiFetch(`${API_BASE}/email/accounts`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -550,7 +558,7 @@ export async function initiateEmailConnect(
   token: string,
   provider: string = "gmail"
 ): Promise<EmailConnectResponse> {
-  const res = await fetch(`${API_BASE}/email/connect?provider=${provider}`, {
+  const res = await apiFetch(`${API_BASE}/email/connect?provider=${provider}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -566,7 +574,7 @@ export async function handleProgrammaticEmailCallback(
   code: string,
   state: string
 ): Promise<EmailAccountConnection> {
-  const res = await fetch(`${API_BASE}/email/callback`, {
+  const res = await apiFetch(`${API_BASE}/email/callback`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify({ code, state }),
@@ -582,7 +590,7 @@ export async function disconnectEmailAccount(
   token: string,
   accountId: string
 ): Promise<EmailAccountConnection> {
-  const res = await fetch(`${API_BASE}/email/accounts/${accountId}/disconnect`, {
+  const res = await apiFetch(`${API_BASE}/email/accounts/${accountId}/disconnect`, {
     method: "POST",
     headers: getAuthHeaders(token),
   });
@@ -598,7 +606,7 @@ export async function getEmailConversations(
   query?: string
 ): Promise<EmailConversation[]> {
   const qStr = query ? `?q=${encodeURIComponent(query)}` : "";
-  const res = await fetch(`${API_BASE}/email/conversations${qStr}`, {
+  const res = await apiFetch(`${API_BASE}/email/conversations${qStr}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -613,7 +621,7 @@ export async function getEmailConversation(
   token: string,
   conversationId: string
 ): Promise<EmailConversation> {
-  const res = await fetch(`${API_BASE}/email/conversations/${conversationId}`, {
+  const res = await apiFetch(`${API_BASE}/email/conversations/${conversationId}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -629,7 +637,7 @@ export async function associateLeadToConversation(
   conversationId: string,
   leadId: string | null
 ): Promise<EmailConversation> {
-  const res = await fetch(`${API_BASE}/email/conversations/${conversationId}`, {
+  const res = await apiFetch(`${API_BASE}/email/conversations/${conversationId}`, {
     method: "PATCH",
     headers: getAuthHeaders(token),
     body: JSON.stringify({ lead_id: leadId }),
@@ -645,7 +653,7 @@ export async function generateAIDraft(
   token: string,
   data: EmailDraftGenerateRequest
 ): Promise<EmailDraftGenerateResponse> {
-  const res = await fetch(`${API_BASE}/email/drafts/generate`, {
+  const res = await apiFetch(`${API_BASE}/email/drafts/generate`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -661,7 +669,7 @@ export async function sendApprovedEmail(
   token: string,
   data: EmailSendRequest
 ): Promise<EmailSendResult> {
-  const res = await fetch(`${API_BASE}/email/send`, {
+  const res = await apiFetch(`${API_BASE}/email/send`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -676,7 +684,7 @@ export async function sendApprovedEmail(
 export async function syncEmailInbox(
   token: string
 ): Promise<{ status: string; message: string; synced_count: number }> {
-  const res = await fetch(`${API_BASE}/email/sync`, {
+  const res = await apiFetch(`${API_BASE}/email/sync`, {
     method: "POST",
     headers: getAuthHeaders(token),
   });
@@ -696,7 +704,7 @@ export async function getContentList(
   status?: string
 ): Promise<ContentItem[]> {
   const qStr = status ? `?status=${encodeURIComponent(status)}` : "";
-  const res = await fetch(`${API_BASE}/content${qStr}`, {
+  const res = await apiFetch(`${API_BASE}/content${qStr}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -711,7 +719,7 @@ export async function createContent(
   token: string,
   data: ContentCreateInput
 ): Promise<ContentItem> {
-  const res = await fetch(`${API_BASE}/content/`, {
+  const res = await apiFetch(`${API_BASE}/content/`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -728,7 +736,7 @@ export async function updateContent(
   contentId: string,
   data: Partial<ContentCreateInput>
 ): Promise<ContentItem> {
-  const res = await fetch(`${API_BASE}/content/${contentId}`, {
+  const res = await apiFetch(`${API_BASE}/content/${contentId}`, {
     method: "PATCH",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -744,7 +752,7 @@ export async function deleteContent(
   token: string,
   contentId: string
 ): Promise<void> {
-  const res = await fetch(`${API_BASE}/content/${contentId}`, {
+  const res = await apiFetch(`${API_BASE}/content/${contentId}`, {
     method: "DELETE",
     headers: getAuthHeaders(token),
   });
@@ -758,7 +766,7 @@ export async function generateAICaption(
   token: string,
   data: AICaptionGenerateRequestInput
 ): Promise<AICaptionGenerateResult> {
-  const res = await fetch(`${API_BASE}/content/generate-caption`, {
+  const res = await apiFetch(`${API_BASE}/content/generate-caption`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -773,7 +781,7 @@ export async function generateAICaption(
 export async function getPlatformCapabilities(
   token: string
 ): Promise<{ capabilities: PlatformCapabilityInfo[] }> {
-  const res = await fetch(`${API_BASE}/content/capabilities`, {
+  const res = await apiFetch(`${API_BASE}/content/capabilities`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -789,7 +797,7 @@ export async function getScheduledPosts(
   status?: string
 ): Promise<ScheduledPostItem[]> {
   const qStr = status ? `?status=${encodeURIComponent(status)}` : "";
-  const res = await fetch(`${API_BASE}/social/schedule${qStr}`, {
+  const res = await apiFetch(`${API_BASE}/social/schedule${qStr}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -806,7 +814,7 @@ export async function scheduleSocialPost(
   platforms: string[],
   scheduledAt: string
 ): Promise<ScheduledPostItem[]> {
-  const res = await fetch(`${API_BASE}/social/schedule`, {
+  const res = await apiFetch(`${API_BASE}/social/schedule`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify({
@@ -827,7 +835,7 @@ export async function publishNowSocialPost(
   contentId: string,
   platforms: string[]
 ): Promise<PublishResultItem[]> {
-  const res = await fetch(`${API_BASE}/social/publish-now`, {
+  const res = await apiFetch(`${API_BASE}/social/publish-now`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify({ content_id: contentId, platforms }),
@@ -843,7 +851,7 @@ export async function cancelScheduledPost(
   token: string,
   postId: string
 ): Promise<ScheduledPostItem> {
-  const res = await fetch(`${API_BASE}/social/schedule/${postId}/cancel`, {
+  const res = await apiFetch(`${API_BASE}/social/schedule/${postId}/cancel`, {
     method: "POST",
     headers: getAuthHeaders(token),
   });
@@ -859,7 +867,7 @@ export async function cancelScheduledPost(
 // ---------------------------------------------------------------------------
 
 export async function getWhatsAppAccounts(token: string): Promise<WhatsAppAccount[]> {
-  const res = await fetch(`${API_BASE}/whatsapp/accounts`, {
+  const res = await apiFetch(`${API_BASE}/whatsapp/accounts`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -874,7 +882,7 @@ export async function connectWhatsAppAccount(
   token: string,
   data: WhatsAppAccountConnectInput
 ): Promise<WhatsAppAccount> {
-  const res = await fetch(`${API_BASE}/whatsapp/connect`, {
+  const res = await apiFetch(`${API_BASE}/whatsapp/connect`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -890,7 +898,7 @@ export async function disconnectWhatsAppAccount(
   token: string,
   accountId: string
 ): Promise<WhatsAppAccount> {
-  const res = await fetch(`${API_BASE}/whatsapp/accounts/${accountId}/disconnect`, {
+  const res = await apiFetch(`${API_BASE}/whatsapp/accounts/${accountId}/disconnect`, {
     method: "POST",
     headers: getAuthHeaders(token),
   });
@@ -905,7 +913,7 @@ export async function suggestWhatsAppReply(
   token: string,
   conversationId: string
 ): Promise<{ conversation_id: string; suggested_reply: string }> {
-  const res = await fetch(
+  const res = await apiFetch(
     `${API_BASE}/whatsapp/suggest-reply?conversation_id=${encodeURIComponent(conversationId)}`,
     {
       method: "POST",
@@ -923,7 +931,7 @@ export async function sendApprovedWhatsAppMessage(
   token: string,
   data: WhatsAppSendRequestInput
 ): Promise<WhatsAppSendResult> {
-  const res = await fetch(`${API_BASE}/whatsapp/send`, {
+  const res = await apiFetch(`${API_BASE}/whatsapp/send`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -955,7 +963,7 @@ export async function getUnifiedConversations(
   if (params?.q) searchParams.append("q", params.q);
 
   const qStr = searchParams.toString() ? `?${searchParams.toString()}` : "";
-  const res = await fetch(`${API_BASE}/inbox/conversations${qStr}`, {
+  const res = await apiFetch(`${API_BASE}/inbox/conversations${qStr}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -970,7 +978,7 @@ export async function getUnifiedConversation(
   token: string,
   conversationId: string
 ): Promise<UnifiedConversation> {
-  const res = await fetch(`${API_BASE}/inbox/conversations/${conversationId}`, {
+  const res = await apiFetch(`${API_BASE}/inbox/conversations/${conversationId}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -985,7 +993,7 @@ export async function getConversationSummary(
   token: string,
   conversationId: string
 ): Promise<ConversationSummary> {
-  const res = await fetch(`${API_BASE}/inbox/conversations/${conversationId}/summary`, {
+  const res = await apiFetch(`${API_BASE}/inbox/conversations/${conversationId}/summary`, {
     method: "POST",
     headers: getAuthHeaders(token),
   });
@@ -1000,7 +1008,7 @@ export async function getSuggestedReply(
   token: string,
   conversationId: string
 ): Promise<SuggestedReply> {
-  const res = await fetch(`${API_BASE}/inbox/conversations/${conversationId}/suggest-reply`, {
+  const res = await apiFetch(`${API_BASE}/inbox/conversations/${conversationId}/suggest-reply`, {
     method: "POST",
     headers: getAuthHeaders(token),
   });
@@ -1015,7 +1023,7 @@ export async function getLeadTimeline(
   token: string,
   leadId: string
 ): Promise<any[]> {
-  const res = await fetch(`${API_BASE}/inbox/timeline/${leadId}`, {
+  const res = await apiFetch(`${API_BASE}/inbox/timeline/${leadId}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -1039,7 +1047,7 @@ export async function getFollowUps(
   if (params?.due) searchParams.append("due", params.due);
 
   const qStr = searchParams.toString() ? `?${searchParams.toString()}` : "";
-  const res = await fetch(`${API_BASE}/follow-ups/${qStr}`, {
+  const res = await apiFetch(`${API_BASE}/follow-ups/${qStr}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -1054,7 +1062,7 @@ export async function createFollowUp(
   token: string,
   data: FollowUpCreateInput
 ): Promise<FollowUpItem> {
-  const res = await fetch(`${API_BASE}/follow-ups/`, {
+  const res = await apiFetch(`${API_BASE}/follow-ups/`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -1071,7 +1079,7 @@ export async function updateFollowUp(
   followUpId: string,
   data: FollowUpUpdateInput
 ): Promise<FollowUpItem> {
-  const res = await fetch(`${API_BASE}/follow-ups/${followUpId}`, {
+  const res = await apiFetch(`${API_BASE}/follow-ups/${followUpId}`, {
     method: "PATCH",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -1086,7 +1094,7 @@ export async function updateFollowUp(
 export async function recommendFollowUps(
   token: string
 ): Promise<{ status: string; message: string; recommended_count: number }> {
-  const res = await fetch(`${API_BASE}/follow-ups/recommend`, {
+  const res = await apiFetch(`${API_BASE}/follow-ups/recommend`, {
     method: "POST",
     headers: getAuthHeaders(token),
   });
@@ -1105,7 +1113,7 @@ export async function getNotifications(
   token: string,
   unreadOnly: boolean = false
 ): Promise<NotificationSummary> {
-  const res = await fetch(`${API_BASE}/notifications/?unread_only=${unreadOnly}`, {
+  const res = await apiFetch(`${API_BASE}/notifications/?unread_only=${unreadOnly}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -1120,7 +1128,7 @@ export async function markNotificationRead(
   token: string,
   notificationId: string
 ): Promise<void> {
-  const res = await fetch(`${API_BASE}/notifications/${notificationId}/read`, {
+  const res = await apiFetch(`${API_BASE}/notifications/${notificationId}/read`, {
     method: "PATCH",
     headers: getAuthHeaders(token),
   });
@@ -1131,7 +1139,7 @@ export async function markNotificationRead(
 }
 
 export async function markAllNotificationsRead(token: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/notifications/mark-all-read`, {
+  const res = await apiFetch(`${API_BASE}/notifications/mark-all-read`, {
     method: "POST",
     headers: getAuthHeaders(token),
   });
@@ -1148,7 +1156,7 @@ export async function markAllNotificationsRead(token: string): Promise<void> {
 export async function getCommunicationPreferences(
   token: string
 ): Promise<UserCommunicationPreferences> {
-  const res = await fetch(`${API_BASE}/settings/communication-preferences`, {
+  const res = await apiFetch(`${API_BASE}/settings/communication-preferences`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -1163,7 +1171,7 @@ export async function updateCommunicationPreferences(
   token: string,
   data: UserCommunicationPreferences
 ): Promise<UserCommunicationPreferences> {
-  const res = await fetch(`${API_BASE}/settings/communication-preferences`, {
+  const res = await apiFetch(`${API_BASE}/settings/communication-preferences`, {
     method: "PATCH",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -1185,7 +1193,7 @@ export async function updateLeadStage(
   stage: string,
   notes?: string
 ): Promise<Lead> {
-  const res = await fetch(`${API_BASE}/crm/leads/${leadId}/stage`, {
+  const res = await apiFetch(`${API_BASE}/crm/leads/${leadId}/stage`, {
     method: "PATCH",
     headers: getAuthHeaders(token),
     body: JSON.stringify({ stage, notes }),
@@ -1202,7 +1210,7 @@ export async function convertLeadToClient(
   leadId: string,
   data: LeadConvertToClientInput
 ): Promise<ClientItem> {
-  const res = await fetch(`${API_BASE}/crm/leads/${leadId}/convert-to-client`, {
+  const res = await apiFetch(`${API_BASE}/crm/leads/${leadId}/convert-to-client`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -1224,7 +1232,7 @@ export async function getClients(
   if (params?.q) searchParams.append("q", params.q);
 
   const qStr = searchParams.toString() ? `?${searchParams.toString()}` : "";
-  const res = await fetch(`${API_BASE}/crm/clients/${qStr}`, {
+  const res = await apiFetch(`${API_BASE}/crm/clients/${qStr}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -1239,7 +1247,7 @@ export async function getClient(
   token: string,
   clientId: string
 ): Promise<ClientItem> {
-  const res = await fetch(`${API_BASE}/crm/clients/${clientId}`, {
+  const res = await apiFetch(`${API_BASE}/crm/clients/${clientId}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -1254,7 +1262,7 @@ export async function createClient(
   token: string,
   data: ClientCreateInput
 ): Promise<ClientItem> {
-  const res = await fetch(`${API_BASE}/crm/clients/`, {
+  const res = await apiFetch(`${API_BASE}/crm/clients/`, {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -1271,7 +1279,7 @@ export async function updateClient(
   clientId: string,
   data: Partial<ClientCreateInput>
 ): Promise<ClientItem> {
-  const res = await fetch(`${API_BASE}/crm/clients/${clientId}`, {
+  const res = await apiFetch(`${API_BASE}/crm/clients/${clientId}`, {
     method: "PATCH",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),
@@ -1286,7 +1294,7 @@ export async function updateClient(
 export async function getCRMDashboard(
   token: string
 ): Promise<CRMDashboardMetrics> {
-  const res = await fetch(`${API_BASE}/crm/dashboard`, {
+  const res = await apiFetch(`${API_BASE}/crm/dashboard`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -1300,7 +1308,7 @@ export async function getCRMDashboard(
 export async function getCRMAnalytics(
   token: string
 ): Promise<CRMAnalyticsData> {
-  const res = await fetch(`${API_BASE}/crm/analytics`, {
+  const res = await apiFetch(`${API_BASE}/crm/analytics`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -1320,7 +1328,7 @@ export async function globalSearch(
   query: string,
   limit: number = 20
 ): Promise<GlobalSearchResponse> {
-  const res = await fetch(
+  const res = await apiFetch(
     `${API_BASE}/search/?q=${encodeURIComponent(query)}&limit=${limit}`,
     {
       method: "GET",
@@ -1342,7 +1350,7 @@ export async function getLeadActivities(
   token: string,
   leadId: string
 ): Promise<ActivityTimelineData> {
-  const res = await fetch(`${API_BASE}/activities/lead/${leadId}`, {
+  const res = await apiFetch(`${API_BASE}/activities/lead/${leadId}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -1357,7 +1365,7 @@ export async function getClientActivities(
   token: string,
   clientId: string
 ): Promise<ActivityTimelineData> {
-  const res = await fetch(`${API_BASE}/activities/client/${clientId}`, {
+  const res = await apiFetch(`${API_BASE}/activities/client/${clientId}`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -1375,7 +1383,7 @@ export async function getClientActivities(
 export async function getUserBusinessProfile(
   token: string
 ): Promise<UserBusinessProfile> {
-  const res = await fetch(`${API_BASE}/settings/business-profile`, {
+  const res = await apiFetch(`${API_BASE}/settings/business-profile`, {
     method: "GET",
     headers: getAuthHeaders(token),
   });
@@ -1390,7 +1398,7 @@ export async function updateUserBusinessProfile(
   token: string,
   data: UserBusinessProfile
 ): Promise<UserBusinessProfile> {
-  const res = await fetch(`${API_BASE}/settings/business-profile`, {
+  const res = await apiFetch(`${API_BASE}/settings/business-profile`, {
     method: "PATCH",
     headers: getAuthHeaders(token),
     body: JSON.stringify(data),

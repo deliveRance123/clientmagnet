@@ -56,7 +56,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const fetchCurrentUser = useCallback(async (jwtToken: string): Promise<User | null> => {
+  // Non-blocking user fetch with unauthorized detection
+  const fetchCurrentUser = useCallback(async (jwtToken: string): Promise<{ user: User | null; unauthorized: boolean }> => {
     try {
       const res = await resilientFetch("/auth/me", {
         headers: {
@@ -64,12 +65,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
       if (res.ok) {
-        return await res.json();
+        const u = await res.json();
+        return { user: u, unauthorized: false };
       }
-      return null;
+      if (res.status === 401 || res.status === 403) {
+        return { user: null, unauthorized: true };
+      }
+      return { user: null, unauthorized: false };
     } catch (err) {
       console.warn("Error fetching current user:", err);
-      return null;
+      return { user: null, unauthorized: false };
     }
   }, []);
 
@@ -120,13 +125,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
 
               // Background non-blocking verification
-              fetchCurrentUser(savedToken).then((freshUser) => {
+              fetchCurrentUser(savedToken).then(({ user: freshUser, unauthorized }) => {
                 if (isMounted) {
                   if (freshUser) {
                     setUser(freshUser);
                     localStorage.setItem("cm_user", JSON.stringify(freshUser));
-                  } else {
-                    // Session expired
+                  } else if (unauthorized) {
+                    // Only log out if the server explicitly returned 401/403
                     setUser(null);
                     setToken(null);
                     localStorage.removeItem("cm_access_token");
@@ -497,7 +502,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = async () => {
     if (token) {
-      const u = await fetchCurrentUser(token);
+      const { user: u } = await fetchCurrentUser(token);
       if (u) {
         setUser(u);
         if (typeof window !== "undefined") {
