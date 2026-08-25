@@ -129,6 +129,31 @@ export async function resilientFetch(
   }
 }
 
+export function setBackendUrl(url: string) {
+  if (typeof window !== "undefined") {
+    let cleanUrl = url.trim();
+    if (!cleanUrl.endsWith("/api/v1")) {
+      cleanUrl = cleanUrl.replace(/\/+$/, "") + "/api/v1";
+    }
+    localStorage.setItem("cm_backend_url", cleanUrl);
+    localStorage.setItem("cm_working_backend", cleanUrl);
+    cachedWorkingBackend = cleanUrl;
+  }
+}
+
+export async function testBackendConnection(url: string): Promise<boolean> {
+  let cleanUrl = url.trim();
+  if (!cleanUrl.endsWith("/api/v1")) {
+    cleanUrl = cleanUrl.replace(/\/+$/, "") + "/api/v1";
+  }
+  try {
+    const res = await fetch(`${cleanUrl}/health`, { method: "GET" });
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
 /**
  * Iterates through candidate backends until a responsive one is found
  */
@@ -137,7 +162,14 @@ async function tryFailoverCandidates(
   options: RequestInit,
   failedBase: string
 ): Promise<Response> {
-  const candidates = CANDIDATE_RENDER_BACKENDS.filter((c) => c !== failedBase);
+  const originCandidate =
+    typeof window !== "undefined" ? `${window.location.origin}/api/v1` : null;
+
+  const candidateList = originCandidate
+    ? [originCandidate, ...CANDIDATE_RENDER_BACKENDS]
+    : CANDIDATE_RENDER_BACKENDS;
+
+  const candidates = candidateList.filter((c) => c !== failedBase);
 
   for (const candidate of candidates) {
     const testUrl = `${candidate}${cleanEndpoint}`;

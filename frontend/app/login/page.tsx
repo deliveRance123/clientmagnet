@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { Lock, Mail, Eye, EyeOff, ArrowRight, AlertCircle, ArrowLeft, KeyRound, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff, ArrowRight, AlertCircle, ArrowLeft, KeyRound, CheckCircle2, ShieldCheck, Settings } from "lucide-react";
+import { getApiBase, setBackendUrl, testBackendConnection } from "@/lib/api-config";
 
 export default function LoginPage() {
   const [authMode, setAuthMode] = useState<"password" | "otp">("password");
@@ -20,6 +21,12 @@ export default function LoginPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
 
+  // Backend config modal states
+  const [showBackendConfig, setShowBackendConfig] = useState(false);
+  const [customBackend, setCustomBackend] = useState("");
+  const [testResult, setTestResult] = useState<string | null>(null);
+  const [testingBackend, setTestingBackend] = useState(false);
+
   // Forgot password modal states
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
@@ -32,6 +39,29 @@ export default function LoginPage() {
 
   const { login, loginWithOTP, sendOTP, forgotPassword, resetPasswordWithOTP, initiateGoogleLogin } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCustomBackend(localStorage.getItem("cm_backend_url") || getApiBase());
+    }
+  }, []);
+
+  const handleSaveBackend = async () => {
+    if (!customBackend.trim()) return;
+    setTestingBackend(true);
+    setTestResult(null);
+    const ok = await testBackendConnection(customBackend.trim());
+    setTestingBackend(false);
+    if (ok) {
+      setBackendUrl(customBackend.trim());
+      setTestResult("✅ Connected successfully!");
+      setError(null);
+      setTimeout(() => setShowBackendConfig(false), 1200);
+    } else {
+      setBackendUrl(customBackend.trim());
+      setTestResult("⚠️ Saved URL. If server is waking up on Render, please wait 30s.");
+    }
+  };
 
   // Resend cooldown timer
   useEffect(() => {
@@ -196,9 +226,23 @@ export default function LoginPage() {
         {/* Auth Card */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl backdrop-blur-xl">
           {error && (
-            <div className="mb-6 flex items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-sm text-red-400">
-              <AlertCircle className="h-5 w-5 flex-shrink-0" />
-              <span>{error}</span>
+            <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-sm text-red-400">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                <span className="flex-1">{error}</span>
+              </div>
+              {error.includes("Unable to connect") && (
+                <div className="mt-2.5 pt-2.5 border-t border-red-500/20 flex items-center justify-between">
+                  <span className="text-[11px] text-slate-400">Connecting to: {customBackend || "Auto-detecting"}</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowBackendConfig(true)}
+                    className="text-xs font-semibold text-sky-400 hover:text-sky-300 underline flex items-center gap-1"
+                  >
+                    <Settings className="h-3 w-3" /> Set Backend URL
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -513,6 +557,76 @@ export default function LoginPage() {
                 </button>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Backend URL Config Modal */}
+      {showBackendConfig && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Settings className="h-5 w-5 text-sky-400" /> Backend API Server URL
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowBackendConfig(false)}
+                className="text-slate-400 hover:text-white text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-400">
+              If your backend is hosted under a specific Render domain (e.g. from your Render Dashboard), enter it here:
+            </p>
+
+            {testResult && (
+              <div className={`p-2.5 rounded-lg text-xs border ${
+                testResult.includes("Connected")
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                  : "border-amber-500/30 bg-amber-500/10 text-amber-400"
+              }`}>
+                {testResult}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">Backend Base URL</label>
+              <input
+                type="text"
+                value={customBackend}
+                onChange={(e) => setCustomBackend(e.target.value)}
+                placeholder="https://client-magnet-backend.onrender.com"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 px-3 text-sm text-white font-mono outline-none focus:border-sky-500"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleSaveBackend}
+                disabled={testingBackend || !customBackend.trim()}
+                className="flex-1 rounded-lg bg-sky-500 py-2 text-xs font-semibold text-white shadow hover:bg-sky-400 disabled:opacity-50"
+              >
+                {testingBackend ? "Testing..." : "Test & Save URL"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    localStorage.removeItem("cm_backend_url");
+                    localStorage.removeItem("cm_working_backend");
+                    setCustomBackend(getApiBase());
+                    setTestResult("Reset to default auto-detection.");
+                  }
+                }}
+                className="rounded-lg border border-slate-700 bg-slate-800 py-2 px-3 text-xs font-medium text-slate-300 hover:bg-slate-700"
+              >
+                Reset Default
+              </button>
+            </div>
           </div>
         </div>
       )}
