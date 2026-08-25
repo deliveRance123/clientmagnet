@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { resilientFetch } from "@/lib/api-config";
+
 interface Message {
   id: string;
   sender: "bot" | "user";
@@ -26,6 +28,7 @@ interface Message {
   timestamp: string;
   options?: string[];
   link?: { text: string; href: string };
+  isLive?: boolean;
 }
 
 const INITIAL_SUGGESTIONS = [
@@ -55,7 +58,7 @@ const KNOWLEDGE_RESPONSES: { [key: string]: { text: string; link?: { text: strin
   },
   whatsapp: {
     text: "Yes! Client Magnet features a Unified Inbox with Meta WhatsApp Cloud API and Gmail integration. You can send personalized outreach, receive client replies, and generate AI consultative reply drafts with zero spam policy.",
-    link: { text: "Open Unified Inbox", href: "/messages" },
+    link: { text: "Open Unified Inbox", href: "/email" },
     options: ["How does Gmail integration work?", "What are the pricing tiers?"],
   },
   pricing: {
@@ -82,9 +85,10 @@ export default function FloatingChatbot() {
     {
       id: "welcome-1",
       sender: "bot",
-      text: "👋 Hi there! I'm Magnet AI, your 24/7 assistant. How can I help you acquire clients, navigate the CRM, or understand our features today?",
+      text: "👋 Hi there! I'm Magnet AI, your live 24/7 autonomous growth assistant. How can I help you acquire clients, draft proposals, or scale your revenue today?",
       timestamp: "Just now",
       options: INITIAL_SUGGESTIONS.slice(0, 4),
+      isLive: true,
     },
   ]);
   const [inputValue, setInputValue] = useState("");
@@ -105,7 +109,7 @@ export default function FloatingChatbot() {
     setUnreadCount(0);
   };
 
-  const getBotReply = (userQuery: string): { text: string; link?: { text: string; href: string }; options?: string[] } => {
+  const getFallbackBotReply = (userQuery: string): { text: string; link?: { text: string; href: string }; options?: string[] } => {
     const q = userQuery.toLowerCase();
 
     if (q.includes("lead") || q.includes("discover") || q.includes("source") || q.includes("find client")) {
@@ -149,7 +153,7 @@ export default function FloatingChatbot() {
     };
   };
 
-  const handleSendMessage = (textToSend?: string) => {
+  const handleSendMessage = async (textToSend?: string) => {
     const query = (textToSend || inputValue).trim();
     if (!query) return;
 
@@ -164,21 +168,46 @@ export default function FloatingChatbot() {
     setInputValue("");
     setIsTyping(true);
 
-    // Realistic typing delay for consultative feel
-    setTimeout(() => {
-      const reply = getBotReply(query);
-      const botMsg: Message = {
-        id: `bot-${Date.now()}`,
-        sender: "bot",
-        text: reply.text,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        link: reply.link,
-        options: reply.options,
-      };
+    try {
+      // Call Live AI Assistant endpoint
+      const res = await resilientFetch("/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: query }),
+      });
 
-      setMessages((prev) => [...prev, botMsg]);
-      setIsTyping(false);
-    }, 600);
+      if (res.ok) {
+        const data = await res.json();
+        const botMsg: Message = {
+          id: `bot-${Date.now()}`,
+          sender: "bot",
+          text: data.reply || data.text,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          link: data.link,
+          options: data.options,
+          isLive: true,
+        };
+        setMessages((prev) => [...prev, botMsg]);
+        setIsTyping(false);
+        return;
+      }
+    } catch (e) {
+      console.warn("Live AI chat fetch failed, falling back to instant knowledge engine:", e);
+    }
+
+    // Fallback response if network drops
+    const reply = getFallbackBotReply(query);
+    const botMsg: Message = {
+      id: `bot-${Date.now()}`,
+      sender: "bot",
+      text: reply.text,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      link: reply.link,
+      options: reply.options,
+      isLive: true,
+    };
+    setMessages((prev) => [...prev, botMsg]);
+    setIsTyping(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -253,12 +282,13 @@ export default function FloatingChatbot() {
               </div>
               <div>
                 <h3 className="text-xs font-black text-white flex items-center gap-1.5">
-                  Magnet AI Advisor
-                  <span className="rounded bg-sky-500/20 px-1.5 py-0.2 text-[9px] font-bold text-sky-300 border border-sky-500/30">
-                    ONLINE
+                  Magnet AI Copilot
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[9px] font-bold text-emerald-400 border border-emerald-500/30">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    LIVE AI
                   </span>
                 </h3>
-                <p className="text-[10px] text-slate-400">Intelligent Client Acquisition Assistant</p>
+                <p className="text-[10px] text-slate-400">Autonomous Client Acquisition & CRM Assistant</p>
               </div>
             </div>
 
