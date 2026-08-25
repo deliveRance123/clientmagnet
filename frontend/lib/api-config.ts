@@ -65,9 +65,9 @@ export function getApiBase(): string {
       return "http://127.0.0.1:8000/api/v1";
     }
 
-    // If deployed on Render
+    // If deployed on Render, use same-domain /api/v1 routes with automatic fallback
     if (hostname.includes("onrender.com")) {
-      return CANDIDATE_RENDER_BACKENDS[0];
+      return "/api/v1";
     }
   }
 
