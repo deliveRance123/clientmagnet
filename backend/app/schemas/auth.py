@@ -9,6 +9,7 @@ class UserRegister(BaseModel):
     password: str = Field(..., min_length=8, max_length=128)
     full_name: Optional[str] = Field(None, max_length=255)
     company_name: Optional[str] = Field(None, max_length=255)
+    otp: Optional[str] = Field(None, max_length=10)
 
 
 class UserLogin(BaseModel):
@@ -44,3 +45,31 @@ class GoogleAuthRequest(BaseModel):
     id_token: Optional[str] = None
     email: Optional[EmailStr] = None
     name: Optional[str] = None
+
+
+class SendOTPRequest(BaseModel):
+    email: EmailStr
+    purpose: Optional[str] = Field("registration", description="registration, login, password_reset, verification")
+
+
+class VerifyOTPRequest(BaseModel):
+    email: EmailStr
+    otp: str = Field(..., min_length=4, max_length=10)
+    purpose: Optional[str] = Field("registration", description="registration, login, password_reset, verification")
+
+
+class LoginOTPRequest(BaseModel):
+    email: EmailStr
+    otp: str = Field(..., min_length=4, max_length=10)
+
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    otp: str = Field(..., min_length=4, max_length=10)
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+
+class OTPResponse(BaseModel):
+    success: bool
+    message: str
+    expires_in_seconds: Optional[int] = 600

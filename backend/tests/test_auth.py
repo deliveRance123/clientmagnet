@@ -368,3 +368,87 @@ async def test_google_auth_existing_user_login(
     data = response.json()
     assert data["user"]["email"] == "existing.google@example.com"
     assert "access_token" in data
+
+
+@pytest.mark.asyncio
+async def test_send_and_verify_otp(async_client: AsyncClient):
+    """Test OTP code dispatch and verification."""
+    # 1. Send OTP
+    send_res = await async_client.post(
+        "/api/v1/auth/otp/send",
+        json={"email": "otp.tester@example.com", "purpose": "registration"},
+    )
+    assert send_res.status_code == 200
+    assert send_res.json()["success"] is True
+
+    # 2. Verify with invalid OTP code
+    bad_verify = await async_client.post(
+        "/api/v1/auth/otp/verify",
+        json={"email": "otp.tester@example.com", "otp": "000000", "purpose": "registration"},
+    )
+    assert bad_verify.status_code == 400
+
+    # 3. Verify with valid dev OTP code (999999)
+    good_verify = await async_client.post(
+        "/api/v1/auth/otp/verify",
+        json={"email": "otp.tester@example.com", "otp": "999999", "purpose": "registration"},
+    )
+    assert good_verify.status_code == 200
+    assert good_verify.json()["success"] is True
+
+
+@pytest.mark.asyncio
+async def test_login_with_otp_flow(async_client: AsyncClient):
+    """Test passwordless authentication via OTP."""
+    email = "otp.login.user@example.com"
+    await async_client.post(
+        "/api/v1/auth/otp/send",
+        json={"email": email, "purpose": "login"},
+    )
+
+    login_res = await async_client.post(
+        "/api/v1/auth/otp/login",
+        json={"email": email, "otp": "999999"},
+    )
+    assert login_res.status_code == 200
+    data = login_res.json()
+    assert "access_token" in data
+    assert data["user"]["email"] == email
+    assert data["user"]["is_verified"] is True
+
+
+@pytest.mark.asyncio
+async def test_forgot_and_reset_password_otp(async_client: AsyncClient):
+    """Test forgot password and reset password using OTP."""
+    email = "reset.user@example.com"
+    # Create user first
+    await async_client.post(
+        "/api/v1/auth/register",
+        json={"email": email, "password": "OriginalPassword123!"},
+    )
+
+    # Request forgot password OTP
+    forgot_res = await async_client.post(
+        "/api/v1/auth/forgot-password",
+        json={"email": email},
+    )
+    assert forgot_res.status_code == 200
+
+    # Reset password with OTP
+    reset_res = await async_client.post(
+        "/api/v1/auth/reset-password",
+        json={
+            "email": email,
+            "otp": "999999",
+            "new_password": "NewSecretPassword123!",
+        },
+    )
+    assert reset_res.status_code == 200
+
+    # Login with new password
+    login_res = await async_client.post(
+        "/api/v1/auth/login",
+        json={"email": email, "password": "NewSecretPassword123!"},
+    )
+    assert login_res.status_code == 200
+    assert "access_token" in login_res.json()

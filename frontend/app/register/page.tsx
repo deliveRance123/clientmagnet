@@ -15,6 +15,8 @@ import {
   AlertCircle,
   CheckCircle2,
   ArrowLeft,
+  KeyRound,
+  ShieldCheck,
 } from "lucide-react";
 
 export default function RegisterPage() {
@@ -23,13 +25,27 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [otpCode, setOtpCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
 
-  const { register, initiateGoogleLogin } = useAuth();
+  const { register, sendOTP, initiateGoogleLogin } = useAuth();
   const router = useRouter();
+
+  // Resend cooldown timer
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (resendCountdown > 0) {
+      timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [resendCountdown]);
 
   const handleGoogleSignUp = async () => {
     setError(null);
@@ -39,6 +55,26 @@ export default function RegisterPage() {
     } catch (err) {
       setError("Failed to initialize Google Sign-In. Please try again.");
       setIsGoogleLoading(false);
+    }
+  };
+
+  const handleSendRegisterOtp = async () => {
+    if (!email.trim()) {
+      setError("Please enter your work email first.");
+      return;
+    }
+    setError(null);
+    setSuccessMsg(null);
+    setIsSendingOtp(true);
+    const res = await sendOTP(email.trim(), "registration");
+    setIsSendingOtp(false);
+
+    if (res.success) {
+      setOtpSent(true);
+      setResendCountdown(60);
+      setSuccessMsg(res.message || "6-digit verification code sent to your email.");
+    } else {
+      setError(res.error || "Failed to send verification code.");
     }
   };
 
@@ -89,6 +125,7 @@ export default function RegisterPage() {
       password,
       full_name: fullName.trim() || undefined,
       company_name: companyName.trim() || undefined,
+      otp: otpCode.trim() || undefined,
     });
 
     setIsSubmitting(false);
@@ -143,6 +180,13 @@ export default function RegisterPage() {
             <div className="mb-6 flex items-center gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-sm text-red-400">
               <AlertCircle className="h-5 w-5 flex-shrink-0" />
               <span>{error}</span>
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="mb-6 flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-sm text-emerald-400">
+              <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
+              <span>{successMsg}</span>
             </div>
           )}
 
@@ -231,9 +275,25 @@ export default function RegisterPage() {
 
             {/* Email Field */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Work Email
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                  Work Email
+                </label>
+                <button
+                  type="button"
+                  onClick={handleSendRegisterOtp}
+                  disabled={isSendingOtp || resendCountdown > 0 || !email.trim()}
+                  className="text-xs font-medium text-sky-400 hover:text-sky-300 disabled:opacity-50 transition-colors"
+                >
+                  {isSendingOtp
+                    ? "Sending OTP..."
+                    : resendCountdown > 0
+                    ? `Resend in ${resendCountdown}s`
+                    : otpSent
+                    ? "Resend Code"
+                    : "Send Email OTP Code"}
+                </button>
+              </div>
               <div className="relative mt-1.5">
                 <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
                   <Mail className="h-4 w-4" />
@@ -248,6 +308,29 @@ export default function RegisterPage() {
                 />
               </div>
             </div>
+
+            {/* OTP Field (Shown if OTP was requested or user wants to verify) */}
+            {otpSent && (
+              <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-3.5 space-y-1.5 animate-fadeIn">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-sky-400 flex items-center gap-1.5">
+                    <KeyRound className="h-3.5 w-3.5" /> 6-Digit Email Verification Code
+                  </label>
+                  <span className="text-[11px] text-slate-400">Expires in 10 mins</span>
+                </div>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                  placeholder="123456"
+                  className="w-full rounded-lg border border-sky-500/50 bg-slate-800 py-2 pl-3 pr-3 text-sm font-mono tracking-widest text-white outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400"
+                />
+                <p className="text-[11px] text-slate-400">
+                  Check your inbox for the code sent from {email || "your email"}.
+                </p>
+              </div>
+            )}
 
             {/* Password & Confirm Row */}
             <div className="grid gap-4 sm:grid-cols-2">

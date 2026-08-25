@@ -24,6 +24,7 @@ from app.models.token import RefreshToken
 from app.models.user import User
 from app.schemas.auth import UserRegister
 from app.schemas.user import UserUpdate
+from app.services.otp import otp_service
 
 logger = logging.getLogger("app.services.auth")
 
@@ -37,9 +38,21 @@ class AuthService:
     ) -> Tuple[User, str, str, int]:
         """
         Registers a new user after validating email uniqueness and password strength.
+        If OTP code is provided, verifies OTP first.
         Returns: (user, access_token, raw_refresh_token, expires_in_seconds)
         """
         normalized_email = user_in.email.strip().lower()
+
+        # 0. If OTP is provided, verify it
+        if user_in.otp:
+            is_valid_otp, otp_msg = otp_service.verify_otp(
+                email=normalized_email, code=user_in.otp, purpose="registration"
+            )
+            if not is_valid_otp:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=otp_msg,
+                )
 
         # 1. Validate password complexity
         is_valid_pw, pw_error = validate_password_strength(user_in.password)
@@ -463,6 +476,139 @@ class AuthService:
 
         expires_in = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
         return user, access_token, raw_refresh_token, expires_in
+
+    @staticmethod
+    async def authenticate_or_register_otp(
+        db: AsyncSession,
+        email: str,
+        otp: str,
+        full_name: Optional[str] = None,
+        company_name: Optional[str] = None,
+    ) -> Tuple[User, str, str, int]:
+        """
+        Authenticates an existing user or automatically registers a new user after verifying 6-digit OTP.
+        Returns: (user, access_token, raw_refresh_token, expires_in_seconds)
+        """
+        normalized_email = email.strip().lower()
+
+        # 1. Verify OTP code
+        is_valid, msg = otp_service.verify_otp(
+            email=normalized_email, code=otp, purpose="login"
+        )
+        if not is_valid:
+            # Also check if it was sent as registration or verification
+            is_valid_reg, _ = otp_service.verify_otp(
+                email=normalized_email, code=otp, purpose="registration"
+            )
+            if not is_valid_reg:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=msg,
+                )
+
+        # 2. Query user
+        query = select(User).where(func.lower(User.email) == normalized_email)
+        result = await db.execute(query)
+        user = result.scalar_one_or_none()
+
+        if user:
+            if not user.is_active:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Account is currently inactive. Please contact support.",
+                )
+            if not user.is_verified:
+                user.is_verified = True
+                user.updated_at = datetime.now(timezone.utc)
+                await db.commit()
+                await db.refresh(user)
+        else:
+            # Auto-register new user with random password hash and is_verified=True
+            random_pw = f"OTPAuth_{secrets.token_urlsafe(32)}_A1!"
+            hashed_pw = hash_password(random_pw)
+
+            new_user = User(
+                email=normalized_email,
+                hashed_password=hashed_pw,
+                full_name=full_name.strip() if full_name else None,
+                company_name=company_name.strip() if company_name else None,
+                is_active=True,
+                is_verified=True,
+            )
+            db.add(new_user)
+            await db.flush()
+            user = new_user
+            await db.commit()
+            await db.refresh(user)
+            logger.info(f"New user registered via OTP: user_id={user.id}")
+
+        # 3. Generate JWT tokens
+        access_token = create_access_token(subject=user.id)
+        raw_refresh_token, token_db_hash, expires_at = create_refresh_token(
+            subject=user.id
+        )
+
+        token_record = RefreshToken(
+            token_hash=token_db_hash,
+            user_id=user.id,
+            expires_at=expires_at,
+            is_revoked=False,
+        )
+        db.add(token_record)
+        await db.commit()
+        await db.refresh(user)
+
+        expires_in = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        logger.info(f"User authenticated via OTP: user_id={user.id}")
+        return user, access_token, raw_refresh_token, expires_in
+
+    @staticmethod
+    async def reset_password_with_otp(
+        db: AsyncSession,
+        email: str,
+        otp: str,
+        new_password: str,
+    ) -> bool:
+        """
+        Validates OTP and updates the user's password.
+        """
+        normalized_email = email.strip().lower()
+
+        # 1. Verify OTP
+        is_valid, msg = otp_service.verify_otp(
+            email=normalized_email, code=otp, purpose="password_reset"
+        )
+        if not is_valid:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=msg,
+            )
+
+        # 2. Validate new password strength
+        is_valid_pw, pw_error = validate_password_strength(new_password)
+        if not is_valid_pw:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=pw_error,
+            )
+
+        # 3. Query user
+        query = select(User).where(func.lower(User.email) == normalized_email)
+        result = await db.execute(query)
+        user = result.scalar_one_or_none()
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No account associated with this email address.",
+            )
+
+        # 4. Hash and update password
+        user.hashed_password = hash_password(new_password)
+        user.updated_at = datetime.now(timezone.utc)
+        await db.commit()
+        logger.info(f"Password reset successfully for user_id={user.id}")
+        return True
 
 
 auth_service = AuthService()

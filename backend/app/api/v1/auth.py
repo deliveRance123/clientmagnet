@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Cookie, Depends, Request, Response, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_active_user, get_db_session
@@ -8,14 +8,20 @@ from app.models.user import User
 from app.schemas.auth import (
     GoogleAuthRequest,
     GoogleAuthUrlResponse,
+    LoginOTPRequest,
     MessageResponse,
+    OTPResponse,
     RefreshTokenRequest,
+    ResetPasswordRequest,
+    SendOTPRequest,
     TokenResponse,
     UserLogin,
     UserRegister,
+    VerifyOTPRequest,
 )
 from app.schemas.user import UserOut, UserUpdate
 from app.services.auth import auth_service
+from app.services.otp import otp_service
 
 router = APIRouter()
 
@@ -321,3 +327,150 @@ async def google_oauth_callback(
         logger.error(f"Error in Google OAuth browser callback: {e}", exc_info=True)
         from fastapi.responses import RedirectResponse
         return RedirectResponse(url=f"{frontend_target}/login?error=auth_failed")
+
+
+# ---------------------------------------------------------------------------
+# Email OTP (One-Time Password) & Password Reset Endpoints
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/otp/send",
+    response_model=OTPResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Send a 6-digit OTP verification code to user email",
+)
+async def send_otp(payload: SendOTPRequest):
+    """
+    Generates and dispatches a 6-digit verification code to the recipient email
+    via Gmail SMTP with a 10-minute validity window.
+    """
+    success, message = await otp_service.send_otp_email(
+        email=payload.email, purpose=payload.purpose or "registration"
+    )
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS if "wait" in message.lower() else status.HTTP_400_BAD_REQUEST,
+            detail=message,
+        )
+    return OTPResponse(
+        success=True,
+        message=message,
+        expires_in_seconds=settings.OTP_EXPIRE_MINUTES * 60,
+    )
+
+
+@router.post(
+    "/otp/verify",
+    response_model=OTPResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Verify a 6-digit OTP verification code",
+)
+async def verify_otp(payload: VerifyOTPRequest):
+    """
+    Verifies that the provided OTP code matches the active code for the email and purpose.
+    """
+    success, message = otp_service.verify_otp(
+        email=payload.email, code=payload.otp, purpose=payload.purpose or "registration"
+    )
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=message,
+        )
+    return OTPResponse(success=True, message=message)
+
+
+@router.post(
+    "/otp/login",
+    response_model=TokenResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Passwordless login/signup using 6-digit OTP",
+)
+async def login_with_otp(
+    payload: LoginOTPRequest,
+    response: Response,
+    db: AsyncSession = Depends(get_db_session),
+):
+    """
+    Authenticates or auto-registers a user using a verified 6-digit OTP code,
+    returning JWT access & refresh tokens.
+    """
+    user, access_token, raw_refresh_token, expires_in = (
+        await auth_service.authenticate_or_register_otp(
+            db=db,
+            email=payload.email,
+            otp=payload.otp,
+        )
+    )
+    _set_auth_cookies(response, raw_refresh_token, access_token)
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=raw_refresh_token,
+        token_type="bearer",
+        expires_in=expires_in,
+        user=UserOut.model_validate(user),
+    )
+
+
+@router.post(
+    "/forgot-password",
+    response_model=OTPResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Request a password reset OTP code",
+)
+async def forgot_password(
+    payload: SendOTPRequest,
+    db: AsyncSession = Depends(get_db_session),
+):
+    """
+    Generates and dispatches a password reset OTP code if the account exists.
+    """
+    # Check if account exists
+    from sqlalchemy import select, func
+    query = select(User).where(func.lower(User.email) == payload.email.strip().lower())
+    result = await db.execute(query)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        # Generic message to avoid email enumeration
+        return OTPResponse(
+            success=True,
+            message=f"If an account exists for {payload.email}, a verification code has been sent.",
+            expires_in_seconds=settings.OTP_EXPIRE_MINUTES * 60,
+        )
+
+    success, message = await otp_service.send_otp_email(
+        email=payload.email, purpose="password_reset"
+    )
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS if "wait" in message.lower() else status.HTTP_400_BAD_REQUEST,
+            detail=message,
+        )
+    return OTPResponse(
+        success=True,
+        message=f"Password reset code sent to {payload.email}.",
+        expires_in_seconds=settings.OTP_EXPIRE_MINUTES * 60,
+    )
+
+
+@router.post(
+    "/reset-password",
+    response_model=MessageResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Reset password using 6-digit OTP code",
+)
+async def reset_password(
+    payload: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db_session),
+):
+    """
+    Resets the account password after validating the 6-digit OTP code.
+    """
+    await auth_service.reset_password_with_otp(
+        db=db,
+        email=payload.email,
+        otp=payload.otp,
+        new_password=payload.new_password,
+    )
+    return MessageResponse(message="Password has been reset successfully. You may now sign in.")

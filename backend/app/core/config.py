@@ -99,6 +99,18 @@ class Settings(BaseSettings):
     USE_MOCK_EMAIL: bool = True
     USE_MOCK_GOOGLE_AUTH: bool = True
 
+    # SMTP / OTP Email Configuration
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = "joshuaoguntegbe200@gmail.com"
+    SMTP_PASSWORD: str = "dcoscjcxxcbzjbzn"
+    EMAILS_FROM_EMAIL: str = "joshuaoguntegbe200@gmail.com"
+    EMAILS_FROM_NAME: str = "Client Magnet"
+    SMTP_TLS: bool = True
+    SMTP_SSL: bool = False
+    OTP_EXPIRE_MINUTES: int = 10
+    OTP_RESEND_COOLDOWN_SECONDS: int = 60
+
     # WhatsApp Business Cloud API Settings
     WHATSAPP_API_URL: str = "https://graph.facebook.com/v19.0"
     WHATSAPP_PHONE_NUMBER_ID: str = ""

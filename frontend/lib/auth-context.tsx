@@ -26,6 +26,7 @@ export interface RegisterPayload {
   password: string;
   full_name?: string;
   company_name?: string;
+  otp?: string;
 }
 
 interface AuthContextType {
@@ -36,6 +37,11 @@ interface AuthContextType {
   register: (payload: RegisterPayload) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: (payload: { code?: string; state?: string; redirect_uri?: string; id_token?: string }) => Promise<{ success: boolean; error?: string }>;
   initiateGoogleLogin: (customRedirectUri?: string) => Promise<void>;
+  sendOTP: (email: string, purpose?: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  verifyOTP: (email: string, otp: string, purpose?: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  loginWithOTP: (email: string, otp: string) => Promise<{ success: boolean; error?: string }>;
+  forgotPassword: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  resetPasswordWithOTP: (payload: { email: string; otp: string; new_password: string }) => Promise<{ success: boolean; message?: string; error?: string }>;
   setDirectAuth: (token: string, user: User) => void;
   logout: () => Promise<void>;
   updateProfile: (data: { full_name?: string; company_name?: string }) => Promise<{ success: boolean; error?: string }>;
@@ -303,6 +309,133 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const sendOTP = async (email: string, purpose: string = "registration") => {
+    try {
+      const res = await resilientFetch("/auth/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), purpose }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return {
+          success: false,
+          error: data.detail || "Failed to send verification code. Please try again.",
+        };
+      }
+      return { success: true, message: data.message };
+    } catch (err) {
+      return {
+        success: false,
+        error: "Unable to reach server. Please check your network connection.",
+      };
+    }
+  };
+
+  const verifyOTP = async (email: string, otp: string, purpose: string = "registration") => {
+    try {
+      const res = await resilientFetch("/auth/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), otp: otp.trim(), purpose }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return {
+          success: false,
+          error: data.detail || "Invalid verification code. Please try again.",
+        };
+      }
+      return { success: true, message: data.message };
+    } catch (err) {
+      return {
+        success: false,
+        error: "Unable to reach server. Please check your network connection.",
+      };
+    }
+  };
+
+  const loginWithOTP = async (email: string, otp: string) => {
+    try {
+      const res = await resilientFetch("/auth/otp/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email: email.trim(), otp: otp.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return {
+          success: false,
+          error: data.detail || "Authentication failed. Please verify your OTP code.",
+        };
+      }
+
+      setToken(data.access_token);
+      setUser(data.user);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cm_access_token", data.access_token);
+        localStorage.setItem("cm_user", JSON.stringify(data.user));
+      }
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: "Unable to reach server. Please check your network connection.",
+      };
+    }
+  };
+
+  const forgotPassword = async (email: string) => {
+    try {
+      const res = await resilientFetch("/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return {
+          success: false,
+          error: data.detail || "Failed to send reset code.",
+        };
+      }
+      return { success: true, message: data.message };
+    } catch (err) {
+      return {
+        success: false,
+        error: "Unable to reach server. Please check your network connection.",
+      };
+    }
+  };
+
+  const resetPasswordWithOTP = async (payload: { email: string; otp: string; new_password: string }) => {
+    try {
+      const res = await resilientFetch("/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: payload.email.trim(),
+          otp: payload.otp.trim(),
+          new_password: payload.new_password,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return {
+          success: false,
+          error: data.detail || "Failed to reset password. Please try again.",
+        };
+      }
+      return { success: true, message: data.message };
+    } catch (err) {
+      return {
+        success: false,
+        error: "Unable to reach server. Please check your network connection.",
+      };
+    }
+  };
+
   const setDirectAuth = (jwtToken: string, authUser: User) => {
     setToken(jwtToken);
     setUser(authUser);
@@ -384,6 +517,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register,
         loginWithGoogle,
         initiateGoogleLogin,
+        sendOTP,
+        verifyOTP,
+        loginWithOTP,
+        forgotPassword,
+        resetPasswordWithOTP,
         setDirectAuth,
         logout,
         updateProfile,
