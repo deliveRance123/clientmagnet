@@ -28,6 +28,20 @@ services:
         sync: false
       - key: GOOGLE_CLIENT_SECRET
         sync: false
+      - key: SMTP_HOST
+        value: "smtp.gmail.com"
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        value: "joshuaoguntegbe200@gmail.com"
+      - key: SMTP_PASSWORD
+        value: "dcoscjcxxcbzjbzn"
+      - key: EMAILS_FROM_EMAIL
+        value: "joshuaoguntegbe200@gmail.com"
+      - key: EMAILS_FROM_NAME
+        value: "Client Magnet"
+      - key: USE_MOCK_GOOGLE_AUTH
+        value: "false"
       - key: META_CLIENT_ID
         sync: false
       - key: META_CLIENT_SECRET
