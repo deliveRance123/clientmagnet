@@ -25,7 +25,29 @@ async def seed_development_data(db_session: Optional[AsyncSession] = None):
 
 
 async def _seed_with_db(db: AsyncSession):
-    # 1. Create development user if not exists
+    # 1. Create Super Admin user if not exists
+    admin_email = "admin@clientmagnet.com"
+    admin_query = select(User).where(User.email == admin_email)
+    admin_result = await db.execute(admin_query)
+    admin_user = admin_result.scalar_one_or_none()
+
+    if not admin_user:
+        logger.info(f"Creating Super Admin user: {admin_email}")
+        admin_user = User(
+            email=admin_email,
+            hashed_password=hash_password("AdminPassword123!"),
+            full_name="Super Administrator",
+            company_name="Client Magnet Global HQ",
+            is_active=True,
+            is_verified=True,
+            is_superuser=True,
+        )
+        db.add(admin_user)
+        await db.commit()
+        await db.refresh(admin_user)
+        logger.info(f"Super Admin created with ID: {admin_user.id}")
+
+    # 2. Create development user if not exists
     dev_email = "dev@clientmagnet.local"
     query = select(User).where(User.email == dev_email)
     result = await db.execute(query)
