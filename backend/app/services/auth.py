@@ -62,14 +62,14 @@ class AuthService:
         # 3. Hash password using Argon2id
         hashed_pw = hash_password(user_in.password)
 
-        # 4. Create and persist user
+        # 4. Create and persist user (auto-verified so all users get immediate access)
         new_user = User(
             email=normalized_email,
             hashed_password=hashed_pw,
             full_name=user_in.full_name.strip() if user_in.full_name else None,
             company_name=user_in.company_name.strip() if user_in.company_name else None,
             is_active=True,
-            is_verified=False,
+            is_verified=True,
         )
         db.add(new_user)
         await db.flush()  # assign user.id
