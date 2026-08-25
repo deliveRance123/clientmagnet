@@ -16,9 +16,14 @@ import {
   Minimize2,
   Maximize2,
   ExternalLink,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+  Square,
+  Radio,
 } from "lucide-react";
 import Link from "next/link";
-
 import { resilientFetch } from "@/lib/api-config";
 
 interface Message {
@@ -85,7 +90,7 @@ export default function FloatingChatbot() {
     {
       id: "welcome-1",
       sender: "bot",
-      text: "👋 Hi there! I'm Magnet AI, your live 24/7 autonomous growth assistant. How can I help you acquire clients, draft proposals, or scale your revenue today?",
+      text: "👋 Hi there! I'm Magnet AI, your live 24/7 autonomous voice & growth copilot. You can speak to me or type your questions about acquiring clients, closing deals, and scaling revenue!",
       timestamp: "Just now",
       options: INITIAL_SUGGESTIONS.slice(0, 4),
       isLive: true,
@@ -94,7 +99,15 @@ export default function FloatingChatbot() {
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [unreadCount, setUnreadCount] = useState(1);
+
+  // Voice States
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentlySpeakingId, setCurrentlySpeakingId] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   // Auto-scroll to bottom of chat
   useEffect(() => {
@@ -102,6 +115,119 @@ export default function FloatingChatbot() {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isOpen, isMinimized, isTyping]);
+
+  // Clean text for speech synthesis
+  const cleanTextForSpeech = (rawText: string) => {
+    return rawText
+      .replace(/[*#_`>•]/g, "")
+      .replace(/https?:\/\/\S+/g, "")
+      .replace(/[\n\r]+/g, ". ")
+      .trim();
+  };
+
+  // Text-To-Speech (Voice Output)
+  const speakText = (text: string, msgId?: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+
+    window.speechSynthesis.cancel();
+
+    const clean = cleanTextForSpeech(text);
+    if (!clean) return;
+
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.rate = 1.05;
+    utterance.pitch = 1.0;
+
+    // Pick natural voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const naturalVoice = voices.find(
+      (v) => (v.name.includes("Natural") || v.name.includes("Google") || v.name.includes("Premium") || v.name.includes("Samantha")) && v.lang.startsWith("en")
+    );
+    if (naturalVoice) {
+      utterance.voice = naturalVoice;
+    }
+
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+      if (msgId) setCurrentlySpeakingId(msgId);
+    };
+
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      setCurrentlySpeakingId(null);
+    };
+
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      setCurrentlySpeakingId(null);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      setCurrentlySpeakingId(null);
+    }
+  };
+
+  // Speech-To-Text (Microphone Voice Input)
+  const startListening = () => {
+    if (typeof window === "undefined") return;
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Voice recognition is not supported in this browser. Please use Chrome, Edge, or Safari.");
+      return;
+    }
+
+    try {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        setInputValue(transcript);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn("Speech recognition error:", event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.warn("Failed to start voice recognition:", err);
+      setIsListening(false);
+    }
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+  };
 
   const handleOpen = () => {
     setIsOpen(true);
@@ -140,7 +266,6 @@ export default function FloatingChatbot() {
       };
     }
 
-    // Smart general answer
     return {
       text: `That's a great question about "${userQuery}". Client Magnet is engineered to automate your entire freelance client acquisition process—from discovering high-budget job leads and scoring client intent with AI, to organizing your deals in a 9-stage CRM and managing omnichannel communication.`,
       options: [
@@ -157,6 +282,11 @@ export default function FloatingChatbot() {
     const query = (textToSend || inputValue).trim();
     if (!query) return;
 
+    if (isListening) {
+      stopListening();
+    }
+    stopSpeaking();
+
     const userMsg: Message = {
       id: `user-${Date.now()}`,
       sender: "user",
@@ -169,7 +299,6 @@ export default function FloatingChatbot() {
     setIsTyping(true);
 
     try {
-      // Call Live AI Assistant endpoint
       const res = await resilientFetch("/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -178,10 +307,12 @@ export default function FloatingChatbot() {
 
       if (res.ok) {
         const data = await res.json();
+        const msgId = `bot-${Date.now()}`;
+        const replyContent = data.reply || data.text;
         const botMsg: Message = {
-          id: `bot-${Date.now()}`,
+          id: msgId,
           sender: "bot",
-          text: data.reply || data.text,
+          text: replyContent,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           link: data.link,
           options: data.options,
@@ -189,16 +320,22 @@ export default function FloatingChatbot() {
         };
         setMessages((prev) => [...prev, botMsg]);
         setIsTyping(false);
+
+        // Auto-speak if voice mode is enabled
+        if (isVoiceEnabled) {
+          speakText(replyContent, msgId);
+        }
         return;
       }
     } catch (e) {
       console.warn("Live AI chat fetch failed, falling back to instant knowledge engine:", e);
     }
 
-    // Fallback response if network drops
+    // Fallback response
     const reply = getFallbackBotReply(query);
+    const msgId = `bot-${Date.now()}`;
     const botMsg: Message = {
-      id: `bot-${Date.now()}`,
+      id: msgId,
       sender: "bot",
       text: reply.text,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -208,6 +345,10 @@ export default function FloatingChatbot() {
     };
     setMessages((prev) => [...prev, botMsg]);
     setIsTyping(false);
+
+    if (isVoiceEnabled) {
+      speakText(reply.text, msgId);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -218,6 +359,7 @@ export default function FloatingChatbot() {
   };
 
   const clearChat = () => {
+    stopSpeaking();
     setMessages([
       {
         id: `welcome-${Date.now()}`,
@@ -239,13 +381,13 @@ export default function FloatingChatbot() {
           {/* Subtle invitation tooltip on desktop */}
           <div className="hidden md:flex items-center gap-2 rounded-2xl bg-slate-900/95 border border-slate-800 px-3.5 py-2 text-xs font-bold text-white shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-right-4 duration-300">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Ask Magnet AI Assistant</span>
+            <span>Ask Magnet Voice & AI Copilot</span>
           </div>
 
           <button
             onClick={handleOpen}
             className="group relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-sky-600 via-blue-600 to-indigo-600 text-white shadow-2xl shadow-sky-500/40 hover:scale-110 active:scale-95 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-sky-400/30"
-            aria-label="Open AI Chat Assistant"
+            aria-label="Open AI Voice Assistant"
           >
             {/* Animated glowing aura ring */}
             <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-sky-400 to-indigo-500 opacity-60 blur-md group-hover:opacity-100 transition duration-300 -z-10 animate-pulse-glow" />
@@ -269,8 +411,8 @@ export default function FloatingChatbot() {
         <div
           className={`fixed z-50 transition-all duration-300 ${
             isMinimized
-              ? "bottom-6 right-6 h-14 w-72"
-              : "bottom-4 right-4 sm:bottom-6 sm:right-6 w-[calc(100vw-32px)] sm:w-[410px] h-[580px] max-h-[85vh]"
+              ? "bottom-6 right-6 h-14 w-80"
+              : "bottom-4 right-4 sm:bottom-6 sm:right-6 w-[calc(100vw-32px)] sm:w-[420px] h-[600px] max-h-[85vh]"
           } rounded-3xl border border-slate-700/80 bg-slate-950/95 shadow-2xl shadow-black/80 backdrop-blur-xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200`}
         >
           {/* Header */}
@@ -285,14 +427,42 @@ export default function FloatingChatbot() {
                   Magnet AI Copilot
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[9px] font-bold text-emerald-400 border border-emerald-500/30">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    LIVE AI
+                    LIVE VOICE & AI
                   </span>
                 </h3>
-                <p className="text-[10px] text-slate-400">Autonomous Client Acquisition & CRM Assistant</p>
+                <p className="text-[10px] text-slate-400">Autonomous Voice & Client Growth Agent</p>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
+              {/* Voice auto-speak toggle button */}
+              <button
+                onClick={() => {
+                  const nextState = !isVoiceEnabled;
+                  setIsVoiceEnabled(nextState);
+                  if (!nextState) stopSpeaking();
+                }}
+                className={`rounded-lg p-1.5 transition ${
+                  isVoiceEnabled
+                    ? "bg-sky-500/20 text-sky-400 border border-sky-500/40"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                }`}
+                title={isVoiceEnabled ? "Voice Auto-Read Enabled" : "Enable Voice Auto-Read"}
+              >
+                {isVoiceEnabled ? <Volume2 className="h-4 w-4 text-sky-400 animate-pulse" /> : <VolumeX className="h-4 w-4" />}
+              </button>
+
+              {/* Stop Speaking Button (if active) */}
+              {isSpeaking && (
+                <button
+                  onClick={stopSpeaking}
+                  className="rounded-lg p-1.5 text-rose-400 hover:bg-rose-500/20 transition border border-rose-500/30"
+                  title="Stop AI voice"
+                >
+                  <Square className="h-3.5 w-3.5 fill-rose-400" />
+                </button>
+              )}
+
               <button
                 onClick={clearChat}
                 className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition"
@@ -308,7 +478,11 @@ export default function FloatingChatbot() {
                 {isMinimized ? <Maximize2 className="h-3.5 w-3.5" /> : <Minimize2 className="h-3.5 w-3.5" />}
               </button>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  stopSpeaking();
+                  stopListening();
+                  setIsOpen(false);
+                }}
                 className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-rose-400 transition"
                 title="Close chat"
               >
@@ -328,7 +502,7 @@ export default function FloatingChatbot() {
                       msg.sender === "user" ? "items-end" : "items-start"
                     }`}
                   >
-                    <div className="flex items-end gap-2 max-w-[85%]">
+                    <div className="flex items-end gap-2 max-w-[88%]">
                       {msg.sender === "bot" && (
                         <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-sky-600 text-white text-[10px] font-bold shadow-xs">
                           <Bot className="h-3.5 w-3.5" />
@@ -336,7 +510,7 @@ export default function FloatingChatbot() {
                       )}
 
                       <div
-                        className={`rounded-2xl px-4 py-2.5 shadow-sm leading-relaxed whitespace-pre-line ${
+                        className={`relative rounded-2xl px-4 py-2.5 shadow-sm leading-relaxed whitespace-pre-line group ${
                           msg.sender === "user"
                             ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white font-medium rounded-br-xs"
                             : "bg-slate-900/90 border border-slate-800 text-slate-200 rounded-bl-xs"
@@ -344,16 +518,42 @@ export default function FloatingChatbot() {
                       >
                         {msg.text}
 
-                        {/* Optional action link */}
-                        {msg.link && (
-                          <div className="mt-2.5 pt-2 border-t border-slate-800/80">
-                            <Link
-                              href={msg.link.href}
-                              onClick={() => setIsOpen(false)}
-                              className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-400 hover:text-sky-300 hover:underline"
+                        {/* Speaker button on bot message */}
+                        {msg.sender === "bot" && (
+                          <div className="mt-2 pt-1.5 border-t border-slate-800/60 flex items-center justify-between gap-2">
+                            <button
+                              onClick={() => {
+                                if (currentlySpeakingId === msg.id && isSpeaking) {
+                                  stopSpeaking();
+                                } else {
+                                  speakText(msg.text, msg.id);
+                                }
+                              }}
+                              className="inline-flex items-center gap-1 text-[10px] text-sky-400 hover:text-sky-300 font-semibold"
                             >
-                              {msg.link.text} <ExternalLink className="h-3 w-3" />
-                            </Link>
+                              {currentlySpeakingId === msg.id && isSpeaking ? (
+                                <>
+                                  <Square className="h-2.5 w-2.5 fill-rose-400 text-rose-400" />
+                                  <span className="text-rose-400">Stop Speaking</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Volume2 className="h-3 w-3" />
+                                  <span>Listen Aloud</span>
+                                </>
+                              )}
+                            </button>
+
+                            {/* Optional action link */}
+                            {msg.link && (
+                              <Link
+                                href={msg.link.href}
+                                onClick={() => setIsOpen(false)}
+                                className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-400 hover:text-indigo-300 hover:underline"
+                              >
+                                {msg.link.text} <ExternalLink className="h-2.5 w-2.5" />
+                              </Link>
+                            )}
                           </div>
                         )}
                       </div>
@@ -395,28 +595,62 @@ export default function FloatingChatbot() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input Bar */}
+              {/* Input Bar with Voice Microphone */}
               <div className="p-3 border-t border-slate-800 bg-slate-950">
+                {isListening && (
+                  <div className="mb-2 flex items-center justify-between rounded-xl border border-rose-500/40 bg-rose-500/10 px-3 py-1.5 text-xs text-rose-400 animate-pulse">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
+                      <span className="font-semibold text-[11px]">Listening to your voice... speak now</span>
+                    </div>
+                    <button
+                      onClick={stopListening}
+                      className="text-[10px] font-bold text-rose-300 underline"
+                    >
+                      Done
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-2 rounded-2xl border border-slate-800 bg-slate-900/90 px-3 py-1.5 focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20 transition">
                   <input
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Ask anything about Client Magnet..."
+                    placeholder={isListening ? "Listening..." : "Ask or speak to Magnet AI..."}
                     className="flex-1 bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none"
                   />
+
+                  {/* Microphone Voice Input Button */}
+                  <button
+                    type="button"
+                    onClick={isListening ? stopListening : startListening}
+                    className={`flex h-7 w-7 items-center justify-center rounded-xl transition ${
+                      isListening
+                        ? "bg-rose-500 text-white animate-pulse"
+                        : "text-slate-400 hover:bg-slate-800 hover:text-sky-400"
+                    }`}
+                    title={isListening ? "Stop Recording" : "Speak your message"}
+                  >
+                    {isListening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                  </button>
+
+                  {/* Send Button */}
                   <button
                     onClick={() => handleSendMessage()}
                     disabled={!inputValue.trim() || isTyping}
-                    className="flex h-7 w-7 items-center justify-center rounded-xl bg-sky-500 text-white hover:bg-sky-400 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    className="flex h-7 w-7 items-center justify-center rounded-xl bg-sky-500 text-white hover:bg-sky-400 disabled:opacity-40 disabled:cursor-not-allowed transition shadow-md"
                     aria-label="Send message"
                   >
                     <Send className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <div className="mt-1.5 text-center text-[9px] text-slate-500">
-                  ⚡ Powered by Client Magnet AI Knowledge Engine
+
+                <div className="mt-1.5 flex items-center justify-center gap-2 text-[9px] text-slate-500">
+                  <span>🎙️ Voice Input Enabled</span>
+                  <span>•</span>
+                  <span>🔊 Text-to-Speech Ready</span>
                 </div>
               </div>
             </>
